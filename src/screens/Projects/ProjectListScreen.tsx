@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
+import ProjectService from '../../services/ProjectService';
+
+type Project = {
+  projectId: number;
+  projectName: string;
+  projectShortName: string;
+  projectDesc: string;
+  projectLandArea: number;
+  projectAddress: string;
+  projectAddressPincode: number;
+  soilId: number;
+  soilName: string;
+};
 
 const dummyProjects = [
   {
@@ -58,44 +73,57 @@ const dummyProjects = [
     id: '20', name: 'Silver Meadows', area: 85, description: 'A meadow farm with wildflowers, honey production, and sheep grazing.' },
 ];
 
-const ProjectListScreen = () => {
-  const [projects, setProjects] = useState(dummyProjects);
-  const navigation = useNavigation();
+type ProjectStackParamList = {
+    ProjectList: undefined;
+    ProjectDetail: { project: Project };
+};
 
-  const handleDelete = (id: string) => {
-    Alert.alert(
-      'Delete Project',
-      'Do you want to delete the Project?',
-      [
-        { text: 'No', style: 'cancel' },
-        { text: 'Yes', onPress: () => setProjects(projects.filter(p => p.id !== id)) },
-      ],
-      { cancelable: true }
-    );
-  };
+const ProjectListScreen = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
+  const jwtToken = useSelector((state: RootState) => state.auth.token);
+  const userInfo = useSelector((state: RootState) => state.auth.user);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!jwtToken) return;
+      try {
+        const response = await ProjectService.getProjects(jwtToken, userInfo!.code);
+        console.log(response, "responsea");
+        setProjects(response.result || []);
+      } catch (error) {
+        // fallback to dummy data on error
+         console.log(error, "error");
+        // setProjects();
+      }
+    };
+    fetchProjects();
+  },[]);
+
 
   type Project = {
-    id: string;
-    name: string;
-    area: number;
-    description: string;
+    projectId: number;
+    projectName: string;
+    projectShortName: string;
+    projectDesc: string;
+    projectLandArea: number;
+    projectAddress: string;
+    projectAddressPincode: number;
+    soilId: number;
+    soilName: string;
   };
-  
+
+  const handleClickofItem = (item: Project) => {
+    navigation.navigate('ProjectDetail', { project: item });
+  }
+
   const renderItem = ({ item }: { item: Project }) => (
-    <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate('ProjectDetail', { project: item })}>
+    <TouchableOpacity style={styles.card} onPress={() => handleClickofItem(item)}>
       <View style={{ flex: 1 }}>
-        <View style={styles.iconRow}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => {/* handle edit */}}>
-            <Icon name="pencil" size={22} color="#388e3c" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => handleDelete(item.id)}>
-            <Icon name="delete" size={22} color="#ff5252" />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.projectName}>Project Name: <Text style={styles.bold}>{item.name}</Text></Text>
-        <Text style={styles.projectArea}>Area: <Text style={styles.bold}>{item.area} acres</Text></Text>
+        <Text style={styles.bold}>{item.projectName}</Text>
+        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} acres</Text>
         <Text style={styles.projectDescription}>
-          Description: {item.description.length > 60 ? `${item.description.substring(0, 60)}...` : item.description}
+          {item.projectDesc.length > 60 ? `${item.projectDesc.substring(0, 60)}...` : item.projectDesc}
         </Text>
       </View>
     </TouchableOpacity>
@@ -103,10 +131,9 @@ const ProjectListScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Total Projects: {projects.length}</Text>
       <FlatList
         data={projects}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.projectId.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 16 }}
       />

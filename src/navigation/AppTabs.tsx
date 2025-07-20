@@ -1,71 +1,142 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ProjectsScreen from '../screens/Projects/ProjectsScreen';
-import CropsScreen from '../screens/Crops/CropsScreen';
-import MarketScreen from '../screens/Market/MarketScreen';
-import WeatherScreen from '../screens/Weather/WeatherScreen';
-import { View, Text, Image } from 'react-native';
+import ProjectListScreen from '../screens/Projects/ProjectListScreen';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 
-const Tab = createBottomTabNavigator();
+const AppTabs = () => 
+  {
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const user = { name: 'John Doe', role: 'Farmer' };
 
-const tabIcons: Record<string, string> = {
-  Projects: 'https://img.icons8.com/color/48/000000/project.png',
-  Crops: 'https://img.icons8.com/color/48/000000/wheat.png',
-  Market: 'https://img.icons8.com/color/48/000000/market-square.png',
-  Weather: 'https://img.icons8.com/color/48/000000/partly-cloudy-day.png',
-};
+  const handleLogout = () => {
+    // Handle logout logic
+    setModalVisible(false);
+  };
 
-const badgeCounts: Record<string, number> = {
-  Projects: 2,
-  Crops: 5,
-  Market: 1,
-  Weather: 0,
-};
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7faff', marginVertical: 50 }}>
+      {/* Custom Header */}
+      <View style={styles.header}>
+        {/* Title */}
+        <Text style={styles.headerTitle}>Projects</Text>
 
-const AppTabs = () => (
-  <Tab.Navigator initialRouteName="Projects"
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused }) => (
-        <View style={{ alignItems: 'center' }}>
-          <Image
-            source={{ uri: tabIcons[route.name] }}
-            style={{ width: 28, height: 28, tintColor: focused ? '#007bff' : '#888' }}
+        {/* Avatar */}
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={styles.avatarContainer}
+        >
+          <Text style={styles.avatarText}>
+            {user.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .toUpperCase()}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Modal */}
+        <Modal
+          transparent
+          visible={modalVisible}
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          {/* Background Overlay */}
+          <Pressable
+            style={styles.overlay}
+            onPress={() => setModalVisible(false)}
           />
-          {badgeCounts[route.name] > 0 && (
-            <View style={{
-              position: 'absolute',
-              top: -4,
-              right: -10,
-              backgroundColor: '#ff5252',
-              borderRadius: 8,
-              paddingHorizontal: 5,
-              paddingVertical: 1,
-              minWidth: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>{badgeCounts[route.name]}</Text>
-            </View>
-          )}
-        </View>
-      ),
-      tabBarLabel: ({ focused }) => (
-        <Text style={{ color: focused ? '#007bff' : '#888', fontSize: 12, fontWeight: focused ? 'bold' : 'normal' }}>{route.name}</Text>
-      ),
-      tabBarStyle: {
-        backgroundColor: '#f7faff',
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-        height: 60,
-      },
-      headerShown: false,
-    })}
-  >
-    <Tab.Screen name="Projects" component={ProjectsScreen} />
-    <Tab.Screen name="Crops" component={CropsScreen} />
-    <Tab.Screen name="Market" component={MarketScreen} />
-    <Tab.Screen name="Weather" component={WeatherScreen} />
-  </Tab.Navigator>
-);
+
+          {/* Modal Content Positioned Top Right */}
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>{user.name}</Text>
+            <Text style={styles.subtitle}>{user.role}</Text>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </View>
+
+      {/* Main content */}
+      <ProjectListScreen />
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 10,
+    backgroundColor: '#f7faff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerTitle: {
+    fontWeight: 'bold',
+    fontSize: 22,
+    color: '#388e3c',
+  },
+  avatarContainer: {
+    backgroundColor: '#388e3c',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  overlay: {
+    flex: 1,
+  },
+  modalContainer: {
+    position: 'absolute',
+    top: 70,
+    right: 20,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    width: 180,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 12,
+  },
+  logoutButton: {
+    backgroundColor: '#d9534f',
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});
 
 export default AppTabs;

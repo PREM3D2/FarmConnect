@@ -14,8 +14,8 @@ const PumpsRoute = () => (
 const CropsRoute = () => (
   <View style={styles.scene}><Text>Crops Details</Text></View>
 );
-const OthersRoute = () => (
-  <View style={styles.scene}><Text>Other Details</Text></View>
+const VenturiRoute = () => (
+  <View style={styles.scene}><Text>Venturi Details</Text></View>
 );
 
 const ProjectDetailScreen = () => {
@@ -31,8 +31,9 @@ const ProjectDetailScreen = () => {
   const renderScene = SceneMap({
     land: LandRoute,
     pumps: PumpsRoute,
+    venturi : VenturiRoute,
     crops: CropsRoute,
-    others: OthersRoute,
+    
   });
 
   return (

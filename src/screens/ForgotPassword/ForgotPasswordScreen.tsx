@@ -4,9 +4,9 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const ForgotPasswordScreen = ({ navigation }: any) => {
   return (
-    <LinearGradient colors={['#43ea2e', '#ffe600']} style={styles.container}>
+    <LinearGradient colors={['#fefefdff','#8ff7a4ff']} style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image source={{ uri: 'https://img.icons8.com/color/96/000000/eco.png' }} style={styles.logo} />
+        <Image source={require('../../../assets/images/FarmConnect_Logo.png')} style={styles.logo} />
         <Text style={styles.appName}>FARM CONNECT</Text>
       </View>
       <Text style={styles.header}>Forgot Password</Text>

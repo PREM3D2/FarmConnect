@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -7,6 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CheckBox from 'react-native-check-box'
 import AuthService from '../../services/AuthService';
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/authSlice';
 
 
 const LoginSchema = Yup.object().shape({
@@ -14,9 +16,7 @@ const LoginSchema = Yup.object().shape({
     password: Yup.string().required('Password is required'),
 });
 
-interface LoginScreenProps {
-    setIsLoggedIn: (val: boolean) => void;
-}
+
 
 type AuthStackParamList = {
     Login: undefined;
@@ -24,16 +24,17 @@ type AuthStackParamList = {
     ForgotPassword: undefined;
 };
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ setIsLoggedIn }) => {
+const LoginScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
+    const dispatch = useDispatch();
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <LinearGradient colors={['#43ea2e', '#ffe600']} style={styles.container}>
+            <LinearGradient colors={['#fefefdff','#8ff7a4ff']} style={styles.container}>
                 <View style={styles.innerContainer}>
                     {/* Logo and App Name */}
                     <View style={styles.logoContainer}>
@@ -51,24 +52,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ setIsLoggedIn }) => {
                             setApiError(null);
                             try {
                                 const result = await AuthService.login(values.mobile, values.password);
-                                // You can handle token or user data here
-                                console.log(result, "result");
-                                setIsLoggedIn(true);
+                                dispatch(login(result));
                             } catch (error: any) {
+                                console.log('catch', error)
                                 setApiError(error?.response?.data?.message || 'Login failed. Please try again.');
                             } finally {
-                                
                                 setLoading(false);
                             }
                         }}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                             <>
-                                <Text style={styles.inputLabel}>Mobile Number</Text>
+                                <Text style={styles.inputLabel}>Email/Mobile Number</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Enter Mobile Number"
-                                    keyboardType="phone-pad"
+                                    placeholder="Enter Email/Mobile Number"
+                                    // keyboardType="phone-pad"
                                     onChangeText={handleChange('mobile')}
                                     onBlur={handleBlur('mobile')}
                                     value={values.mobile}
@@ -179,13 +178,15 @@ const styles = StyleSheet.create({
     },
     welcomeText: {
         fontSize: 14,
-        color: '#666',
+        color: '#333',
+        fontWeight: 'bold',
         alignSelf: 'flex-start',
         marginBottom: 16,
     },
     inputLabel: {
         fontSize: 14,
-        color: '#388e3c',
+        color: '#333',
+        fontWeight: 'bold',
         alignSelf: 'flex-start',
         marginBottom: 4,
         marginTop: 8,
@@ -215,6 +216,7 @@ const styles = StyleSheet.create({
     rememberMeText: {
         fontSize: 14,
         color: '#333',
+        fontWeight: 'bold',
         marginLeft: 4,
     },
     forgotPasswordContainer: {
@@ -241,7 +243,8 @@ const styles = StyleSheet.create({
     },
     orText: {
         fontSize: 14,
-        color: '#666',
+        color: '#333',
+        fontWeight: 'bold',
         marginVertical: 8,
     },
     socialRow: {
@@ -268,6 +271,7 @@ const styles = StyleSheet.create({
     signupText: {
         fontSize: 14,
         color: '#333',
+        fontWeight: 'bold',
     },
     signupLink: {
         fontSize: 14,

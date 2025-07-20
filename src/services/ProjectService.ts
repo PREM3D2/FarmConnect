@@ -1,11 +1,18 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://your-api-url.com/api'; // Replace with your actual API base URL
+const API_BASE_URL = "http://ip.novusapl.com:8080/agaate/api/app1000"; // Replace with your actual API base URL
 
 const ProjectService = {
-  getProjects: async () => {
+  getProjects: async (jwtToken: string, userCode: number) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/projects`);
+      const response = await axios.get(
+        `${API_BASE_URL}/projects/${userCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
