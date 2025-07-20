@@ -89,7 +89,6 @@ const ProjectListScreen = () => {
       if (!jwtToken) return;
       try {
         const response = await ProjectService.getProjects(jwtToken, userInfo!.code);
-        console.log(response, "responsea");
         setProjects(response.result || []);
       } catch (error) {
         // fallback to dummy data on error
@@ -123,7 +122,7 @@ const ProjectListScreen = () => {
         <Text style={styles.bold}>{item.projectName}</Text>
         <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} acres</Text>
         <Text style={styles.projectDescription}>
-          {item.projectDesc.length > 60 ? `${item.projectDesc.substring(0, 60)}...` : item.projectDesc}
+          {item.projectAddress.length > 60 ? `${item.projectAddress.substring(0, 60)}...` : item.projectAddress}
         </Text>
       </View>
     </TouchableOpacity>

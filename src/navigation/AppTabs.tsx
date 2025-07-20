@@ -9,14 +9,18 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { logout } from '../store/authSlice';
 
 const AppTabs = () => 
   {
   const [modalVisible, setModalVisible] = React.useState(false);
-  const user = { name: 'John Doe', role: 'Farmer' };
+  const userInfo = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
-    // Handle logout logic
+    dispatch(logout());
     setModalVisible(false);
   };
 
@@ -33,10 +37,7 @@ const AppTabs = () =>
           style={styles.avatarContainer}
         >
           <Text style={styles.avatarText}>
-            {user.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
+            {userInfo?.firstName[0]
               .toUpperCase()}
           </Text>
         </TouchableOpacity>
@@ -56,8 +57,8 @@ const AppTabs = () =>
 
           {/* Modal Content Positioned Top Right */}
           <View style={styles.modalContainer}>
-            <Text style={styles.title}>{user.name}</Text>
-            <Text style={styles.subtitle}>{user.role}</Text>
+            <Text style={styles.title}>{userInfo?.firstName} {userInfo?.lastName}</Text>
+            <Text style={styles.subtitle}>{userInfo?.roles[0]}</Text>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>

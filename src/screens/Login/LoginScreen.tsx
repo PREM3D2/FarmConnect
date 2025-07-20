@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -9,10 +9,11 @@ import CheckBox from 'react-native-check-box'
 import AuthService from '../../services/AuthService';
 import { useDispatch } from 'react-redux';
 import { login } from '../../store/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const LoginSchema = Yup.object().shape({
-    mobile: Yup.string().required('Mobile Number is required'),
+    mobile: Yup.string().required('Email/Mobile Number is required'),
     password: Yup.string().required('Password is required'),
 });
 
@@ -28,7 +29,22 @@ const LoginScreen = () => {
     const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [initialValues, setInitialValues] = useState({ mobile: '', password: '', remember: false });
+    // Autofill credentials if Remember Me was checked
+    useEffect(() => {
+        const loadRemembered = async () => {
+            try {
+                const saved = await AsyncStorage.getItem('rememberedCredentials');
+                if (saved) {
+                    setInitialValues(JSON.parse(saved));
+                }
+            } catch {}
+        };
+        loadRemembered();
+    }, []);
+    
     const dispatch = useDispatch();
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -45,12 +61,17 @@ const LoginScreen = () => {
                     <Text style={styles.loginTitle}>Login</Text>
                     <Text style={styles.welcomeText}>Welcome back! Please enter your details</Text>
                     <Formik
-                        initialValues={{ mobile: '', password: '', remember: false }}
+                        initialValues={initialValues}
                         validationSchema={LoginSchema}
                         onSubmit={async (values) => {
                             setLoading(true);
                             setApiError(null);
                             try {
+                                if (values.remember) {
+                                    await AsyncStorage.setItem('rememberedCredentials', JSON.stringify(values));
+                                } else {
+                                    await AsyncStorage.removeItem('rememberedCredentials');
+                                }
                                 const result = await AuthService.login(values.mobile, values.password);
                                 dispatch(login(result));
                             } catch (error: any) {

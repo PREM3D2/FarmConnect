@@ -4,7 +4,7 @@ interface User {
   code: number;
   firstName: string;
   middleName: string | null;
-  lastName: string | null;
+  lastName: string;
   userGender: string;
   userEmail: string;
   userPhone: string;
@@ -29,7 +29,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<{
-        user: any;
+        user: User;
         jwtToken: string | null;
 }>) => {
       state.token = action.payload.jwtToken;
