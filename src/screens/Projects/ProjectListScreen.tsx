@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import ProjectService from '../../services/ProjectService';
 
-type Project = {
+export type Project = {
   projectId: number;
   projectName: string;
   projectShortName: string;
@@ -81,14 +81,11 @@ type ProjectStackParamList = {
 const ProjectListScreen = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
-  const jwtToken = useSelector((state: RootState) => state.auth.token);
-  const userInfo = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     const fetchProjects = async () => {
-      if (!jwtToken) return;
       try {
-        const response = await ProjectService.getProjects(jwtToken, userInfo!.code);
+        const response = await ProjectService.getProjects();
         setProjects(response.result || []);
       } catch (error) {
         // fallback to dummy data on error
@@ -100,18 +97,6 @@ const ProjectListScreen = () => {
   },[]);
 
 
-  type Project = {
-    projectId: number;
-    projectName: string;
-    projectShortName: string;
-    projectDesc: string;
-    projectLandArea: number;
-    projectAddress: string;
-    projectAddressPincode: number;
-    soilId: number;
-    soilName: string;
-  };
-
   const handleClickofItem = (item: Project) => {
     navigation.navigate('ProjectDetailScreen', { project: item });
   }
@@ -120,7 +105,7 @@ const ProjectListScreen = () => {
     <TouchableOpacity style={styles.card} onPress={() => handleClickofItem(item)}>
       <View style={{ flex: 1 }}>
         <Text style={styles.bold}>{item.projectName} ({item.projectShortName})</Text>
-        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} acres</Text>
+        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} SFT</Text>
         <Text style={{color:'green',  fontWeight: 'bold',}}>{item.soilName}</Text>
         <Text style={styles.projectDescription}>
           {item.projectAddress.length > 60 ? `${item.projectAddress.substring(0, 60)}...` : item.projectAddress}

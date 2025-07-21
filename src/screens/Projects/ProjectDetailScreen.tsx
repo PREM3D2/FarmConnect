@@ -1,66 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, createContext } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import Land from './ProjectDetailScreens/Land';
+import Pumps from './ProjectDetailScreens/Pumps';
+import Crops from './ProjectDetailScreens/Crops';
+import Venturi from './ProjectDetailScreens/Venturi';
+import { useRoute } from '@react-navigation/native';
+import type { Project } from './ProjectListScreen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// import { Project } from './ProjectListScreen';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
-const LandRoute = () => {return(
-  <View style={styles.scene}><Text>Land Details</Text></View>
-);}
-const PumpsRoute = () => {return(
-  <View style={styles.scene}><Text>Land Details</Text></View>
-);}
-const CropsRoute = () => {return(
-  <View style={styles.scene}><Text>Land Details</Text></View>
-);}
-const VenturiRoute = () => {return(
-  <View style={styles.scene}><Text>Land Details</Text></View>
-);}
 
-const ProjectDetailScreen = () => {
+export const ProjectDetailContext = createContext<Project | undefined>(undefined);
+
+const ProjectDetailScreen = ({}) => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { project } = (route.params as { project: Project }); // assuming you passed { project: ProjectDetail }
   const [index, setIndex] = useState(0); // Initial tab is LandRoute
   const [routes] = useState([
     { key: 'land', title: 'Land' },
     { key: 'pumps', title: 'Pumps' },
     { key: 'crops', title: 'Crops' },
-    { key: 'others', title: 'Others' },
+    { key: 'venturi', title: 'Venturi' },
   ]);
 
   const renderScene = SceneMap({
-    land: LandRoute,
-    pumps: PumpsRoute,
-    venturi : VenturiRoute,
-    crops: CropsRoute,
-    
+    land: Land,
+    pumps: Pumps,
+    crops: Crops,
+    venturi: Venturi,
   });
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Header with Back Button */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>{'<'} Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Project Details</Text>
+    <ProjectDetailContext.Provider value={project}>
+      <View style={{ flex: 1 }}>
+        {/* Header with Back Button */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+           <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c'/>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{project.projectName}</Text>
+        </View>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={initialLayout}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              style={{ backgroundColor: '#388e3c' }}
+              indicatorStyle={{ backgroundColor: '#f8f6fbff' }}
+            />
+          )}
+        />
       </View>
-      {/* <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={initialLayout}
-        renderTabBar={props => (
-          <TabBar
-            {...props}
-            indicatorStyle={{ backgroundColor: '#388e3c' }}
-            style={{ backgroundColor: '#f7faff' }}
-            // labelStyle={{ color: '#388e3c', fontWeight: 'bold' }}
-          />
-        )}
-      /> */}
-      
-    </View>
+    </ProjectDetailContext.Provider>
   );
 };
 

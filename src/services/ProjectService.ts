@@ -1,15 +1,21 @@
 import axios from 'axios';
+import store from '../store/store';
 
 const API_BASE_URL = "http://ip.novusapl.com:8080/agaate/api/app1000"; // Replace with your actual API base URL
 
+const getJwtToken = () => store.getState().auth.token;
+const getUserCode = () => store.getState().auth.user?.code;
+
 const ProjectService = {
-  getProjects: async (jwtToken: string, userCode: number) => {
+  getProjects: async () => {
     try {
+      const token = getJwtToken();
+      const userCode = getUserCode();
       const response = await axios.get(
         `${API_BASE_URL}/projects/${userCode}`,
         {
           headers: {
-            Authorization: `Bearer ${jwtToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

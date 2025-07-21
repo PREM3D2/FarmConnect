@@ -14,7 +14,7 @@ const AppContent = () => {
   const isLoggedIn = !!token; // directly use
   
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, marginTop: 40 }}>
       <NavigationContainer>
         <StatusBar barStyle="dark-content" />
         {isLoggedIn ? (

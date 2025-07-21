@@ -1,0 +1,431 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable, Dimensions, ScrollView } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Dropdown } from 'react-native-element-dropdown';
+import * as Yup from 'yup';
+import { Formik } from 'formik';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store/store';
+import LandService from '../../../services/LandService';
+import { useContext } from 'react';
+import { ProjectDetailContext } from '../ProjectDetailScreen';
+import AppTextInput from '../../../components/AppTextInput';
+
+
+const riserSides = [
+    { label: 'Length', value: 'length' },
+    { label: 'Width', value: 'width' },
+];
+//need to update soilColor dropdown from API
+const soilColor = [
+    { label: 'Red', value: 'Red' },
+    { label: 'Black', value: 'Black' },
+];
+
+type Plot = {
+    code: number;
+    projectId: number;
+    projectName: string;
+    plotName: string;
+    plotLength: number;
+    plotWidth: number;
+    isRiser: boolean;
+    riserCalMethod: string;
+    plotRiserDistance: number;
+    plotBedActualCount: number;
+    soilId: number;
+    soilColor: string;
+    plotTotalArea: number;
+    plotBedEstimateCount: number;
+};
+
+const Land = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editLand, setEditLand] = useState<Plot | null>(null);
+    const [plots, setPlots] = useState<Plot[]>([]);
+    const project = useContext(ProjectDetailContext);
+
+    const openAddModal = () => {
+        setEditLand(null);
+        setModalVisible(true);
+    };
+
+    const openEditModal = (land: any) => {
+        setEditLand(land);
+        setModalVisible(true);
+    };
+
+    const jwtToken = useSelector((state: RootState) => state.auth.token);
+
+    useEffect(() => {
+        const fetchPlots = async () => {
+            if (!jwtToken || typeof project?.projectId !== 'number') return;
+            try {
+                const response = await LandService.getplotsbyprojectid(project.projectId);
+                setPlots(response.result || []);
+                console.log(response.result, "response");
+            } catch (error) {
+                console.log(error, "error");
+            }
+        };
+        fetchPlots();
+    }, []);
+
+    const validationSchema = Yup.object().shape({
+        name: Yup.string().max(45).required('Name is required'),
+        length: Yup.number().typeError('Length must be a number').required('Length is required'),
+        width: Yup.number().typeError('Width must be a number').required('Width is required'),
+        riser: Yup.boolean().required(),
+        riserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
+        bedCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
+        riserSide: Yup.string().required('Riser Side is required'),
+        soil: Yup.string().required('soil type is required'),
+    });
+
+    const renderLand = ({ item }: { item: Plot }) => (
+        <View style={styles.card}>
+            <View style={styles.cardHeader}>
+                <Text style={styles.landName}>{item.plotName}</Text>
+                <View style={styles.cardActions}>
+                    <TouchableOpacity onPress={() => openEditModal(item)}>
+                        <Icon name="pencil" size={22} color="#388e3c" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ marginLeft: 8 }}>
+                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+            <Text style={styles.field}>Total Area: {item.plotTotalArea}</Text>
+            <Text style={styles.field}>Soil: {item.soilColor}</Text>
+            {item.isRiser && (
+                <View style={styles.sectionRiser}>
+                    <Text style={styles.sectionTitle}>Riser</Text>
+                    <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
+                    <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
+                    <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
+                </View>
+            )}
+        </View>
+    );
+
+    return (
+        <View style={{ flex: 1 }}>
+            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                <Icon name="plus-circle" size={24} color='#388e3c' />
+                <Text style={styles.addBtnText}>Add Land</Text>
+            </TouchableOpacity>
+            <FlatList
+                data={plots}
+                renderItem={renderLand}
+                keyExtractor={item => item.code.toString()}
+                contentContainerStyle={{ padding: 16 }}
+            />
+            <Modal
+                visible={modalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                            <Text style={styles.modalTitle}>{editLand ? 'Edit Land' : 'Add Land'}</Text>
+                            <Formik
+                                initialValues={{
+                                    plotName: editLand?.plotName || '',
+                                    plotLength: editLand?.plotLength?.toString() || '',
+                                    plotWidth: editLand?.plotWidth?.toString() || '',
+                                    isRiser: editLand?.isRiser || false,
+                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
+                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
+                                    soilColor: editLand?.soilColor || '',
+                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
+                                }}
+                                validationSchema={Yup.object().shape({
+                                    plotName: Yup.string().max(45).required('Plot Name is required'),
+                                    plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
+                                    plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
+                                    isRiser: Yup.boolean().required(),
+                                    plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
+                                    plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
+                                    riserSide: Yup.string().required('Riser Side is required'),
+                                    soilColor: Yup.string().required('Soil type is required'),
+                                })}
+                                onSubmit={(values, { resetForm }) => {
+                                    setModalVisible(false);
+                                    resetForm();
+                                }}
+                            >
+                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                                    <>
+                                        <AppTextInput
+                                            placeholder="Plot Name"
+                                            maxLength={45}
+                                            value={values.plotName}
+                                            required ={true}
+                                            onChangeText={handleChange('plotName')}/>
+                                            {/* // onBlur={handleBlur('plotName')} /> */}
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Plot Name"
+                                            maxLength={45}
+                                            value={values.plotName}
+                                            onChangeText={handleChange('plotName')}
+                                            onBlur={handleBlur('plotName')}
+                                        />
+                                        {touched.plotName && errors.plotName && typeof errors.plotName === 'string' && (
+                                            <Text style={styles.error}>{errors.plotName}</Text>
+                                        )}
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Length"
+                                            keyboardType="decimal-pad"
+                                            value={values.plotLength}
+                                            onChangeText={handleChange('plotLength')}
+                                            onBlur={handleBlur('plotLength')}
+                                        />
+                                        {touched.plotLength && errors.plotLength && <Text style={styles.error}>{errors.plotLength}</Text>}
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Width"
+                                            keyboardType="decimal-pad"
+                                            value={values.plotWidth}
+                                            onChangeText={handleChange('plotWidth')}
+                                            onBlur={handleBlur('plotWidth')}
+                                        />
+                                        {touched.plotWidth && errors.plotWidth && <Text style={styles.error}>{errors.plotWidth}</Text>}
+                                        <View style={styles.checkboxRow}>
+                                            <TouchableOpacity
+                                                style={styles.checkbox}
+                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                            >
+                                                <MaterialCommunityIcons
+                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    size={22}
+                                                    color="#388e3c"
+                                                />
+                                            </TouchableOpacity>
+                                            <Text style={styles.checkboxLabel}>Riser</Text>
+                                        </View>
+                                        <View style={styles.dropdownRow}>
+                                            <Text style={styles.dropdownLabel}>Riser Side:</Text>
+                                            <Dropdown
+                                                style={styles.dropdown}
+                                                data={riserSides}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.riserSide}
+                                                onChange={item => setFieldValue('riserSide', item.value)}
+                                                placeholder="Select Riser Side"
+                                            />
+                                        </View>
+                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Riser Distance"
+                                            keyboardType="decimal-pad"
+                                            value={values.plotRiserDistance}
+                                            onChangeText={handleChange('plotRiserDistance')}
+                                            onBlur={handleBlur('plotRiserDistance')}
+                                        />
+                                        {touched.plotRiserDistance && errors.plotRiserDistance && typeof errors.plotRiserDistance === 'string' && (
+                                            <Text style={styles.error}>{errors.plotRiserDistance}</Text>
+                                        )}
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="Bed Actual Count"
+                                            keyboardType="decimal-pad"
+                                            value={values.plotBedActualCount}
+                                            onChangeText={handleChange('plotBedActualCount')}
+                                            onBlur={handleBlur('plotBedActualCount')}
+                                        />
+                                        {touched.plotBedActualCount && errors.plotBedActualCount && typeof errors.plotBedActualCount === 'string' && (
+                                            <Text style={styles.error}>{errors.plotBedActualCount}</Text>
+                                        )}
+                                       <View style={styles.dropdownRow}>
+                                            <Text style={styles.dropdownLabel}>Soil Color:</Text>
+                                            <Dropdown
+                                                style={styles.dropdown}
+                                                data={soilColor}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.soilColor}
+                                                onChange={item => setFieldValue('soilColor', item.value)}
+                                                placeholder="Select Soil Color"
+                                            />
+                                        </View>
+                                        {touched.soilColor && errors.soilColor && typeof errors.soilColor === 'string' && (
+                                            <Text style={styles.error}>{errors.soilColor}</Text>
+                                        )}
+                                        <View style={styles.modalActions}>
+                                            <Pressable style={styles.saveBtn} onPress={() => handleSubmit}>
+                                                <Text style={styles.saveBtnText}>Save</Text>
+                                            </Pressable>
+                                            <Pressable style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                            </Pressable>
+                                        </View>
+                                    </>
+                                )}
+                            </Formik>
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    addBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        padding: 10,
+        margin: 16,
+        borderRadius: 8,
+        marginBottom: 0,
+    },
+    addBtnText: {
+        marginLeft: 8,
+        color: '#388e3c',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 16,
+        marginBottom: 16,
+        elevation: 2,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    landName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#388e3c',
+    },
+    cardActions: {
+        flexDirection: 'row',
+    },
+    field: {
+        fontSize: 15,
+        color: '#333',
+        marginBottom: 2,
+    },
+    sectionRiser: {
+        marginTop: 8,
+        backgroundColor: '#f1f8e9',
+        borderRadius: 6,
+        padding: 8,
+    },
+    sectionTitle: {
+        fontWeight: 'bold',
+        color: '#388e3c',
+        marginBottom: 4,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 18,
+        paddingVertical: 24,
+        paddingHorizontal: 18,
+        width: Dimensions.get('window').width * 0.95,
+        maxHeight: Dimensions.get('window').height * 0.92,
+        elevation: 6,
+        alignSelf: 'center',
+        justifyContent: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#388e3c',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 6,
+        padding: 10,
+        marginBottom: 12,
+        fontSize: 16,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    checkbox: {
+        marginRight: 8,
+    },
+    checkboxLabel: {
+        fontSize: 16,
+        color: '#333',
+    },
+    dropdownRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    dropdownLabel: {
+        fontSize: 16,
+        color: '#333',
+        marginRight: 8,
+    },
+    dropdown: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        height: 40,
+        backgroundColor: '#fff',
+    },
+    error: {
+        color: '#d32f2f',
+        fontSize: 13,
+        marginBottom: 8,
+        marginLeft: 2,
+    },
+    modalActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 16,
+    },
+    saveBtn: {
+        backgroundColor: '#388e3c',
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+    },
+    saveBtnText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    cancelBtn: {
+        backgroundColor: '#eee',
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+    },
+    cancelBtnText: {
+        color: '#333',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+});
+
+export default Land;
