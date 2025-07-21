@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StatusBar, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './src/navigation/AuthStack';
-import AppTabs from './src/navigation/AppTabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider, useSelector } from 'react-redux';
 import store, { RootState } from './src/store/store';
+import MainStack from './src/navigation/MainStack';
+import AppTabs from './src/navigation/AppTabs';
+import AppHeaderLayout from './src/components/AppHeaderLayout'; // Import AppHeaderLayout
 
 const AppContent = () => {
   const token = useSelector((state: RootState) => state.auth.token);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-  useEffect(() => {
-    setIsLoggedIn(!!token);
-  }, [token]);
-
+  const isLoggedIn = !!token; // directly use
+  
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <NavigationContainer>
         <StatusBar barStyle="dark-content" />
         {isLoggedIn ? (
-          <AppTabs />
+          <AppHeaderLayout>
+            <MainStack/>
+          </AppHeaderLayout>
         ) : (
           <AuthStack />
         )}

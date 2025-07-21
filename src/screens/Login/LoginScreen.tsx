@@ -55,7 +55,7 @@ const LoginScreen = () => {
                     {/* Logo and App Name */}
                     <View style={styles.logoContainer}>
                         <Image source={require('../../../assets/images/FarmConnect_Logo.png')} style={styles.logo} />
-                        <Text style={styles.appName}>FARM CONNECT</Text>
+                        <Text style={styles.appName}>AGAATE</Text>
                     </View>
                     {/* Login Title and Welcome Text */}
                     <Text style={styles.loginTitle}>Login</Text>
@@ -75,7 +75,6 @@ const LoginScreen = () => {
                                 const result = await AuthService.login(values.mobile, values.password);
                                 dispatch(login(result));
                             } catch (error: any) {
-                                console.log('catch', error)
                                 setApiError(error?.response?.data?.message || 'Login failed. Please try again.');
                             } finally {
                                 setLoading(false);
@@ -88,7 +87,6 @@ const LoginScreen = () => {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Enter Email/Mobile Number"
-                                    // keyboardType="phone-pad"
                                     onChangeText={handleChange('mobile')}
                                     onBlur={handleBlur('mobile')}
                                     value={values.mobile}

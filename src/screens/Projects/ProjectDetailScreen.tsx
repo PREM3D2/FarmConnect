@@ -5,18 +5,18 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
-const LandRoute = () => (
+const LandRoute = () => {return(
   <View style={styles.scene}><Text>Land Details</Text></View>
-);
-const PumpsRoute = () => (
-  <View style={styles.scene}><Text>Pumps Details</Text></View>
-);
-const CropsRoute = () => (
-  <View style={styles.scene}><Text>Crops Details</Text></View>
-);
-const VenturiRoute = () => (
-  <View style={styles.scene}><Text>Venturi Details</Text></View>
-);
+);}
+const PumpsRoute = () => {return(
+  <View style={styles.scene}><Text>Land Details</Text></View>
+);}
+const CropsRoute = () => {return(
+  <View style={styles.scene}><Text>Land Details</Text></View>
+);}
+const VenturiRoute = () => {return(
+  <View style={styles.scene}><Text>Land Details</Text></View>
+);}
 
 const ProjectDetailScreen = () => {
   const navigation = useNavigation();
@@ -45,7 +45,7 @@ const ProjectDetailScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Project Details</Text>
       </View>
-      <TabView
+      {/* <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}
@@ -58,7 +58,8 @@ const ProjectDetailScreen = () => {
             // labelStyle={{ color: '#388e3c', fontWeight: 'bold' }}
           />
         )}
-      />
+      /> */}
+      
     </View>
   );
 };

@@ -1,14 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Modal, Pressable } from 'react-native';
-import ProjectListScreen from './ProjectListScreen';
-import { useDispatch } from 'react-redux';
-import { logout } from '../../store/authSlice';
+import { SafeAreaView, View, Text, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../store/authSlice';
+import { RootState } from '../store/store';
 
+interface AppHeaderLayoutProps {
+  children: React.ReactNode;
+}
 
-const ProjectsScreen = () => {
+const AppHeaderLayout: React.FC<AppHeaderLayoutProps> = ({ children }) => {
   const [modalVisible, setModalVisible] = React.useState(false);
-  const user = { name: 'John Doe', role: 'Farmer' };
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -16,52 +19,38 @@ const ProjectsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f7faff' }}>
+    <SafeAreaView style={{ flex: 1 , marginTop:50}}>
       {/* Custom Header */}
       <View style={styles.header}>
-        {/* Title */}
-        <Text style={styles.headerTitle}>Projects</Text>
-
-        {/* Avatar */}
+        <Text style={styles.headerTitle}>AGAATE</Text>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           style={styles.avatarContainer}
         >
           <Text style={styles.avatarText}>
-            {user.name
-              .split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()}
+            {user?.firstName
+              ? user.firstName.split(' ').map((n) => n[0]).join('').toUpperCase()
+              : 'U'}
           </Text>
         </TouchableOpacity>
-
-        {/* Modal */}
         <Modal
           transparent
           visible={modalVisible}
           animationType="fade"
           onRequestClose={() => setModalVisible(false)}
         >
-          {/* Background Overlay */}
-          <Pressable
-            style={styles.overlay}
-            onPress={() => setModalVisible(false)}
-          />
-
-          {/* Modal Content Positioned Top Right */}
+          <Pressable style={styles.overlay} onPress={() => setModalVisible(false)} />
           <View style={styles.modalContainer}>
-            <Text style={styles.title}>{user.name}</Text>
-            <Text style={styles.subtitle}>{user.role}</Text>
+            <Text style={styles.title}>{user?.firstName || 'User'}</Text>
+            <Text style={styles.subtitle}>{user?.roles?.[0] || ''}</Text>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
           </View>
         </Modal>
       </View>
-
-      {/* Main content */}
-      <ProjectListScreen />
+      {/* Stack Navigator screens below header */}
+      <View style={{ flex: 1 }}>{children}</View>
     </SafeAreaView>
   );
 };
@@ -134,5 +123,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-export default ProjectsScreen;
+export default AppHeaderLayout;

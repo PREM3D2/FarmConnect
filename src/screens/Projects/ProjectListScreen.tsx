@@ -75,7 +75,7 @@ const dummyProjects = [
 
 type ProjectStackParamList = {
     ProjectList: undefined;
-    ProjectDetail: { project: Project };
+    ProjectDetailScreen: { project: Project };
 };
 
 const ProjectListScreen = () => {
@@ -113,14 +113,15 @@ const ProjectListScreen = () => {
   };
 
   const handleClickofItem = (item: Project) => {
-    navigation.navigate('ProjectDetail', { project: item });
+    navigation.navigate('ProjectDetailScreen', { project: item });
   }
 
   const renderItem = ({ item }: { item: Project }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleClickofItem(item)}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.bold}>{item.projectName}</Text>
+        <Text style={styles.bold}>{item.projectName} ({item.projectShortName})</Text>
         <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} acres</Text>
+        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.soilName}</Text>
         <Text style={styles.projectDescription}>
           {item.projectAddress.length > 60 ? `${item.projectAddress.substring(0, 60)}...` : item.projectAddress}
         </Text>
@@ -130,6 +131,9 @@ const ProjectListScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View>
+        <Text style={styles.header}>Projects</Text>
+      </View>
       <FlatList
         data={projects}
         keyExtractor={item => item.projectId.toString()}
