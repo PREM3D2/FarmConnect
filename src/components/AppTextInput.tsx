@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, TextInput, Text, StyleSheet, Animated } from 'react-native';
+import { View, TextInput, Text, StyleSheet, Animated, TextStyle } from 'react-native';
 
 interface AppTextInputProps {
   value: string;
@@ -37,21 +37,26 @@ const AppTextInput: React.FC<AppTextInputProps> = ({
     }).start();
   }, [isFocused, value]);
 
-  const labelStyle = {
+  const labelStyle: Animated.AnimatedProps<TextStyle> = {
     top: animatedLabel.interpolate({
       inputRange: [0, 1],
-      outputRange: [16, 0],
+      outputRange: [16, -10],
     }),
+    left: 14,
     fontSize: animatedLabel.interpolate({
       inputRange: [0, 1],
       outputRange: [16, 12],
     }),
     color: error ? '#d32f2f' : isFocused ? '#388e3c' : '#888',
+    backgroundColor: '#fff',
+    paddingHorizontal: 2,
+    position: 'absolute' as 'absolute',
+    zIndex: 2,
   };
 
   return (
     <View style={[styles.container, style]}>
-      <Animated.Text style={[styles.label, labelStyle]}>
+      <Animated.Text style={labelStyle}>
         {placeholder}
         {required && <Text style={styles.asterisk}>*</Text>}
       </Animated.Text>
@@ -79,13 +84,6 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 18,
   },
-  label: {
-    position: 'absolute',
-    left: 10,
-    backgroundColor: '#fff',
-    paddingHorizontal: 2,
-    zIndex: 2,
-  },
   asterisk: {
     color: '#d32f2f',
     fontWeight: 'bold',
@@ -97,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     fontSize: 16,
-    paddingTop: 18,
+    paddingTop: 16,
     backgroundColor: '#fff',
   },
   inputError: {

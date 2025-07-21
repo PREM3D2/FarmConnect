@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable, Dimensions, ScrollView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/store';
 import LandService from '../../../services/LandService';
 import { useContext } from 'react';
 import { ProjectDetailContext } from '../ProjectDetailScreen';
@@ -45,22 +43,56 @@ const Land = () => {
     const [editLand, setEditLand] = useState<Plot | null>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
     const project = useContext(ProjectDetailContext);
+    const [reloadList, setReloadList] = useState(false);
 
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
     };
 
+
     const openEditModal = (land: any) => {
         setEditLand(land);
         setModalVisible(true);
     };
 
-    const jwtToken = useSelector((state: RootState) => state.auth.token);
+    const handleDelete = (plot: Plot) => {
+        const deletePlot = async () => {
+            if (typeof project?.projectId !== 'number') return;
+            try {
+                const response = await LandService.deletePlot(plot.code);
+                console.log(response.result, "response");
+            } catch (error) {
+                console.log(error, "error");
+            }
+        };
+        deletePlot();
+        setReloadList(!reloadList);
+    };
+
+    const confirmDelete = (plot: Plot) => {
+        Alert.alert(
+            'Delete Land',
+            `Do you want to Delete the Land ${plot.plotName}?`,
+            [
+                {
+                    text: 'No',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Yes',
+                    onPress: () => handleDelete(plot),
+                    style: 'destructive',
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
 
     useEffect(() => {
         const fetchPlots = async () => {
-            if (!jwtToken || typeof project?.projectId !== 'number') return;
+            if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await LandService.getplotsbyprojectid(project.projectId);
                 setPlots(response.result || []);
@@ -70,17 +102,17 @@ const Land = () => {
             }
         };
         fetchPlots();
-    }, []);
+    }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
-        name: Yup.string().max(45).required('Name is required'),
-        length: Yup.number().typeError('Length must be a number').required('Length is required'),
-        width: Yup.number().typeError('Width must be a number').required('Width is required'),
-        riser: Yup.boolean().required(),
-        riserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        bedCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
+        plotName: Yup.string().max(45).required('Name is required'),
+        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
+        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
+        isRiser: Yup.boolean().required(),
+        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
+        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
         riserSide: Yup.string().required('Riser Side is required'),
-        soil: Yup.string().required('soil type is required'),
+        soilColor: Yup.string().required('soil type is required'),
     });
 
     const renderLand = ({ item }: { item: Plot }) => (
@@ -91,7 +123,7 @@ const Land = () => {
                     <TouchableOpacity onPress={() => openEditModal(item)}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }}>
+                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
                     </TouchableOpacity>
                 </View>
@@ -142,16 +174,7 @@ const Land = () => {
                                     soilColor: editLand?.soilColor || '',
                                     riserSide: editLand?.riserCalMethod || riserSides[0].value,
                                 }}
-                                validationSchema={Yup.object().shape({
-                                    plotName: Yup.string().max(45).required('Plot Name is required'),
-                                    plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-                                    plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-                                    isRiser: Yup.boolean().required(),
-                                    plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-                                    plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-                                    riserSide: Yup.string().required('Riser Side is required'),
-                                    soilColor: Yup.string().required('Soil type is required'),
-                                })}
+                                validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
                                     setModalVisible(false);
                                     resetForm();
@@ -159,42 +182,31 @@ const Land = () => {
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
+                                        {/* <Text>{JSON.stringify(errors, null, 2)} {JSON.stringify(touched, null, 2)}</Text> */}
                                         <AppTextInput
                                             placeholder="Plot Name"
                                             maxLength={45}
+                                            onBlur={() => handleBlur('plotName')}
                                             value={values.plotName}
-                                            required ={true}
-                                            onChangeText={handleChange('plotName')}/>
-                                            {/* // onBlur={handleBlur('plotName')} /> */}
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            value={values.plotName}
-                                            onChangeText={handleChange('plotName')}
-                                            onBlur={handleBlur('plotName')}
-                                        />
-                                        {touched.plotName && errors.plotName && typeof errors.plotName === 'string' && (
-                                            <Text style={styles.error}>{errors.plotName}</Text>
-                                        )}
-                                        <TextInput
-                                            style={styles.input}
+                                            required={true}
+                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
+                                            onChangeText={handleChange('plotName')} />
+                                        <AppTextInput
                                             placeholder="Length"
+                                            onBlur={() => handleBlur('plotLength')}
                                             keyboardType="decimal-pad"
                                             value={values.plotLength}
-                                            onChangeText={handleChange('plotLength')}
-                                            onBlur={handleBlur('plotLength')}
-                                        />
-                                        {touched.plotLength && errors.plotLength && <Text style={styles.error}>{errors.plotLength}</Text>}
-                                        <TextInput
-                                            style={styles.input}
+                                            required={true}
+                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
+                                            onChangeText={handleChange('plotLength')} />
+                                        <AppTextInput
                                             placeholder="Width"
+                                            onBlur={() => handleBlur('plotWidth')}
                                             keyboardType="decimal-pad"
                                             value={values.plotWidth}
-                                            onChangeText={handleChange('plotWidth')}
-                                            onBlur={handleBlur('plotWidth')}
-                                        />
-                                        {touched.plotWidth && errors.plotWidth && <Text style={styles.error}>{errors.plotWidth}</Text>}
+                                            required={true}
+                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
+                                            onChangeText={handleChange('plotWidth')} />
                                         <View style={styles.checkboxRow}>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
@@ -221,29 +233,23 @@ const Land = () => {
                                             />
                                         </View>
                                         {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <TextInput
-                                            style={styles.input}
+                                        <AppTextInput
                                             placeholder="Riser Distance"
+                                            onBlur={() => handleBlur('plotRiserDistance')}
+                                            required={true}
+                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
                                             keyboardType="decimal-pad"
                                             value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')}
-                                            onBlur={handleBlur('plotRiserDistance')}
-                                        />
-                                        {touched.plotRiserDistance && errors.plotRiserDistance && typeof errors.plotRiserDistance === 'string' && (
-                                            <Text style={styles.error}>{errors.plotRiserDistance}</Text>
-                                        )}
-                                        <TextInput
-                                            style={styles.input}
+                                            onChangeText={handleChange('plotRiserDistance')} />
+                                        <AppTextInput
                                             placeholder="Bed Actual Count"
+                                            onBlur={() => handleBlur('plotBedActualCount')}
+                                            required={true}
+                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
                                             keyboardType="decimal-pad"
                                             value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')}
-                                            onBlur={handleBlur('plotBedActualCount')}
-                                        />
-                                        {touched.plotBedActualCount && errors.plotBedActualCount && typeof errors.plotBedActualCount === 'string' && (
-                                            <Text style={styles.error}>{errors.plotBedActualCount}</Text>
-                                        )}
-                                       <View style={styles.dropdownRow}>
+                                            onChangeText={handleChange('plotBedActualCount')} />
+                                        <View style={styles.dropdownRow}>
                                             <Text style={styles.dropdownLabel}>Soil Color:</Text>
                                             <Dropdown
                                                 style={styles.dropdown}
