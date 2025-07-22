@@ -72,14 +72,21 @@ const LandService = {
     }
   },
 
-  deletePlot: async (plotId:number) => {
+  deletePlot: async (plotId:any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.delete(`${API_BASE_URL}/plot/${plotId}`,{
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // const response = await axios.delete(`${API_BASE_URL}/plot` {plotId:plotId}
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   })
+       const response = await axios.post(`${API_BASE_URL}/plot`, {plotId},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
       return response.data;
     } catch (error) {
       throw error;

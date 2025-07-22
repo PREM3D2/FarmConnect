@@ -17,8 +17,8 @@ const riserSides = [
 ];
 //need to update soilColor dropdown from API
 const soilColor = [
-    { label: 'Red', value: 'Red' },
-    { label: 'Black', value: 'Black' },
+    { label: 'Red', value: 1 },
+    { label: 'Black', value: 2 },
 ];
 
 type Plot = {
@@ -58,7 +58,6 @@ const Land = () => {
 
     const handleDelete = (plot: Plot) => {
         const deletePlot = async () => {
-            if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await LandService.deletePlot(plot.code);
                 console.log(response.result, "response");
@@ -88,6 +87,32 @@ const Land = () => {
             { cancelable: true }
         );
     };
+
+    const handleAddPlot = async (values: any) => {
+        const plotData = {
+            projectId: project?.projectId,
+            plotName: values.plotName,
+            plotLength: parseFloat(values.plotLength),
+            plotWidth: parseFloat(values.plotWidth),
+            isRiser: values.isRiser,
+            riserCalMethod: values.riserSide,
+            plotRiserDistance: parseFloat(values.plotRiserDistance),
+            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
+            soilColor: values.soilColor,
+        };
+        console.log(plotData, "plotData");
+        const addPlot = async () => {
+            try {
+                const response = await LandService.addPlot(plotData);
+                console.log(response.result, "response");
+            } catch (error) {
+                console.log(error, "error");
+            }
+        };
+        addPlot();
+        setReloadList(!reloadList);
+    }
+
 
 
     useEffect(() => {
@@ -176,13 +201,15 @@ const Land = () => {
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    setModalVisible(false);
+                                    console.log("on Submit")
+                                    handleAddPlot(values);
+                                    setModalVisible(false);                                    
                                     resetForm();
                                 }}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} {JSON.stringify(touched, null, 2)}</Text> */}
+                                     <Text>{JSON.stringify(errors, null, 2)} </Text>
                                         <AppTextInput
                                             placeholder="Plot Name"
                                             maxLength={45}
@@ -265,7 +292,7 @@ const Land = () => {
                                             <Text style={styles.error}>{errors.soilColor}</Text>
                                         )}
                                         <View style={styles.modalActions}>
-                                            <Pressable style={styles.saveBtn} onPress={() => handleSubmit}>
+                                            <Pressable style={styles.saveBtn} onPress={handleSubmit}>
                                                 <Text style={styles.saveBtnText}>Save</Text>
                                             </Pressable>
                                             <Pressable style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
