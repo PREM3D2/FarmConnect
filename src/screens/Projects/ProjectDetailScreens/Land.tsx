@@ -44,6 +44,7 @@ const Land = () => {
     const [plots, setPlots] = useState<Plot[]>([]);
     const project = useContext(ProjectDetailContext);
     const [reloadList, setReloadList] = useState(false);
+    const [isEditCase, setIsEditCase] = useState(false);
 
     const openAddModal = () => {
         setEditLand(null);
@@ -60,9 +61,7 @@ const Land = () => {
         const deletePlot = async () => {
             try {
                 const response = await LandService.deletePlot(plot.code);
-                console.log(response.result, "response");
             } catch (error) {
-                console.log(error, "error");
             }
         };
         deletePlot();
@@ -98,22 +97,42 @@ const Land = () => {
             riserCalMethod: values.riserSide,
             plotRiserDistance: parseFloat(values.plotRiserDistance),
             plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilColor: values.soilColor,
+            soilId: values.soilId,
         };
-        console.log(plotData, "plotData");
         const addPlot = async () => {
             try {
-                const response = await LandService.addPlot(plotData);
-                console.log(response.result, "response");
+                await LandService.addPlot(plotData);
             } catch (error) {
-                console.log(error, "error");
             }
         };
         addPlot();
         setReloadList(!reloadList);
     }
 
+    const handleUpdatePlot = async (values: any) => {
+        const plotData = {
+            projectId: project?.projectId,
+            plotName: values.plotName,
+            plotLength: parseFloat(values.plotLength),
+            plotWidth: parseFloat(values.plotWidth),
+            isRiser: values.isRiser,
+            riserCalMethod: values.riserSide,
+            plotRiserDistance: parseFloat(values.plotRiserDistance),
+            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
+            soilId: values.soilId,
+            code: values.code,
+        };
+        const updatePlot = async () => {
+            try {
+                await LandService.updatePlot(plotData);
+                setIsEditCase(false)
+            } catch (error) {
+            }
+        };
+        updatePlot();
 
+        setReloadList(!reloadList);
+    }
 
     useEffect(() => {
         const fetchPlots = async () => {
@@ -121,9 +140,7 @@ const Land = () => {
             try {
                 const response = await LandService.getplotsbyprojectid(project.projectId);
                 setPlots(response.result || []);
-                console.log(response.result, "response");
             } catch (error) {
-                console.log(error, "error");
             }
         };
         fetchPlots();
@@ -137,7 +154,7 @@ const Land = () => {
         plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
         plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
         riserSide: Yup.string().required('Riser Side is required'),
-        soilColor: Yup.string().required('soil type is required'),
+        soilId: Yup.string().required('soil type is required'),
     });
 
     const renderLand = ({ item }: { item: Plot }) => (
@@ -145,7 +162,10 @@ const Land = () => {
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.plotName}</Text>
                 <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => openEditModal(item)}>
+                    <TouchableOpacity onPress={() => {
+                        openEditModal(item);
+                        setIsEditCase(true);
+                    }}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
@@ -196,20 +216,25 @@ const Land = () => {
                                     isRiser: editLand?.isRiser || false,
                                     plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
                                     plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilColor: editLand?.soilColor || '',
+                                    soilId: editLand?.soilId || '',
                                     riserSide: editLand?.riserCalMethod || riserSides[0].value,
+                                    code: editLand?.code || '',
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    console.log("on Submit")
-                                    handleAddPlot(values);
-                                    setModalVisible(false);                                    
+                                    if (!isEditCase) {
+                                        handleAddPlot(values);
+                                    }
+                                    else {
+                                        handleUpdatePlot(values);
+                                    }
+                                    setModalVisible(false);
                                     resetForm();
                                 }}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                     <Text>{JSON.stringify(errors, null, 2)} </Text>
+                                        <Text>{JSON.stringify(errors, null, 2)} </Text>
                                         <AppTextInput
                                             placeholder="Plot Name"
                                             maxLength={45}
@@ -283,19 +308,22 @@ const Land = () => {
                                                 data={soilColor}
                                                 labelField="label"
                                                 valueField="value"
-                                                value={values.soilColor}
+                                                value={values.soilId}
                                                 onChange={item => setFieldValue('soilColor', item.value)}
                                                 placeholder="Select Soil Color"
                                             />
                                         </View>
-                                        {touched.soilColor && errors.soilColor && typeof errors.soilColor === 'string' && (
-                                            <Text style={styles.error}>{errors.soilColor}</Text>
+                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
+                                            <Text style={styles.error}>{errors.soilId}</Text>
                                         )}
                                         <View style={styles.modalActions}>
                                             <Pressable style={styles.saveBtn} onPress={handleSubmit}>
                                                 <Text style={styles.saveBtnText}>Save</Text>
                                             </Pressable>
-                                            <Pressable style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                                            <Pressable style={styles.cancelBtn} onPress={() => {
+                                                setModalVisible(false);
+                                                setIsEditCase(false);
+                                            }}>
                                                 <Text style={styles.cancelBtnText}>Cancel</Text>
                                             </Pressable>
                                         </View>

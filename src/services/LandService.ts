@@ -41,10 +41,10 @@ const LandService = {
     }
   },
 
-  addPlot: async (projectData: any) => {
+  addPlot: async (plotData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.post(`${API_BASE_URL}/plot`, projectData,
+      const response = await axios.post(`${API_BASE_URL}/plot`, plotData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -73,25 +73,18 @@ const LandService = {
   },
 
   deletePlot: async (plotId:any) => {
-    try {
-      const token = getJwtToken();
-      // const response = await axios.delete(`${API_BASE_URL}/plot` {plotId:plotId}
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   })
-       const response = await axios.post(`${API_BASE_URL}/plot`, {plotId},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      return response.data;
+   try {
+      const bearerToken = getJwtToken();
+      const response = await axios.delete(`${API_BASE_URL}/plot`, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+        },
+        data: {"code":plotId}, // Pass the request body within the 'data' property of the config object
+      });
     } catch (error) {
-      throw error;
+      console.error('Error during delete request:', error);
     }
-  },
+  }
 };
 
 export default LandService;
