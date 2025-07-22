@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Pressable, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -38,7 +38,8 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const Land = () => {
+const Land = () => 
+    {
     const [modalVisible, setModalVisible] = useState(false);
     const [editLand, setEditLand] = useState<Plot | null>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
