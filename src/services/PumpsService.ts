@@ -7,12 +7,12 @@ const API_BASE_URL = "http://ip.novusapl.com:8080/agaate/api/app1000"; // Replac
 const getJwtToken = () => store.getState().auth.token;
 
 
-const LandService = {
-  getplotsbyprojectid: async (projectId: number) => {
+const PumpService = {
+  getPumpsbyprojectid: async (projectId: number) => {
     try {
       const token = getJwtToken();
       const response = await axios.get(
-        `${API_BASE_URL}/plot/${projectId}`,
+        `${API_BASE_URL}/pump/${projectId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -25,10 +25,10 @@ const LandService = {
     }
   },
 
-  getplotbyplotid: async (plotId: string) => {
+  getPumpbyPumpid: async (PumpId: string) => {
     try {
       const token = getJwtToken();
-      const response = await axios.get(`${API_BASE_URL}/plot/edit/${plotId}`,
+      const response = await axios.get(`${API_BASE_URL}/Pump/edit/${PumpId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -41,26 +41,10 @@ const LandService = {
     }
   },
 
-  getAllSoils: async () => {
+  addPump: async (PumpData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.get(`${API_BASE_URL}/soils`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  addPlot: async (plotData: any) => {
-    try {
-      const token = getJwtToken();
-      const response = await axios.post(`${API_BASE_URL}/plot`, plotData,
+      const response = await axios.post(`${API_BASE_URL}/Pump`, PumpData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -72,10 +56,10 @@ const LandService = {
     }
   },
 
-  updatePlot: async (projectData: any) => {
+  updatePump: async (projectData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.put(`${API_BASE_URL}/plot`, projectData,
+      const response = await axios.put(`${API_BASE_URL}/Pump`, projectData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,14 +72,14 @@ const LandService = {
     }
   },
 
-  deletePlot: async (plotId:any) => {
+  deletePump: async (PumpId:any) => {
    try {
       const bearerToken = getJwtToken();
-      const response = await axios.delete(`${API_BASE_URL}/plot`, {
+      const response = await axios.delete(`${API_BASE_URL}/Pump`, {
         headers: {
           'Authorization': `Bearer ${bearerToken}`,
         },
-        data: {"code":plotId}, // Pass the request body within the 'data' property of the config object
+        data: {"code":PumpId}, // Pass the request body within the 'data' property of the config object
       });
     } catch (error) {
       console.error('Error during delete request:', error);
@@ -103,4 +87,4 @@ const LandService = {
   }
 };
 
-export default LandService;
+export default PumpService;

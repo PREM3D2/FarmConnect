@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Pressable, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -9,12 +9,21 @@ import LandService from '../../../services/LandService';
 import { useContext } from 'react';
 import { ProjectDetailContext } from '../ProjectDetailScreen';
 import AppTextInput from '../../../components/AppTextInput';
+import AppDropdown from '../../../components/AppDropdown';
+import { useRoute } from '@react-navigation/core';
+import { Project } from '../ProjectListScreen';
 
 
 const riserSides = [
     { label: 'Length', value: 'length' },
     { label: 'Width', value: 'width' },
 ];
+
+type Soil = {
+    code: 1,
+    soilColor: string,
+    soilDesc: string
+}
 //need to update soilColor dropdown from API
 const soilColor = [
     { label: 'Red', value: 1 },
@@ -38,14 +47,14 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const Land = () => 
-    {
+const Land = ({}) => {
     const [modalVisible, setModalVisible] = useState(false);
+    const route = useRoute();
+    const { project } = (route.params as { project: Project });
     const [editLand, setEditLand] = useState<Plot | null>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
-    const project = useContext(ProjectDetailContext);
     const [reloadList, setReloadList] = useState(false);
-    const [isEditCase, setIsEditCase] = useState(false);
+    const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
 
     const openAddModal = () => {
         setEditLand(null);
@@ -126,16 +135,27 @@ const Land = () =>
         const updatePlot = async () => {
             try {
                 await LandService.updatePlot(plotData);
-                setIsEditCase(false)
             } catch (error) {
             }
         };
         updatePlot();
-
         setReloadList(!reloadList);
     }
 
     useEffect(() => {
+        const fetchSoilData = async () => {
+            try {
+                const response = await LandService.getAllSoils();
+                setSoilDataOptions([...response.result || []]);
+            } catch (error) {
+                console.error("Error fetching soil data:", error);
+            }
+        };
+        fetchSoilData();
+    }, []);
+
+    useEffect(() => {
+        console.log("Project ID:", project);
         const fetchPlots = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
@@ -165,7 +185,6 @@ const Land = () =>
                 <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => {
                         openEditModal(item);
-                        setIsEditCase(true);
                     }}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
@@ -223,7 +242,7 @@ const Land = () =>
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    if (!isEditCase) {
+                                    if (!editLand) {
                                         handleAddPlot(values);
                                     }
                                     else {
@@ -235,7 +254,7 @@ const Land = () =>
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                        <Text>{JSON.stringify(errors, null, 2)} </Text>
+                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
                                         <AppTextInput
                                             placeholder="Plot Name"
                                             maxLength={45}
@@ -274,7 +293,6 @@ const Land = () =>
                                             <Text style={styles.checkboxLabel}>Riser</Text>
                                         </View>
                                         <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Riser Side:</Text>
                                             <Dropdown
                                                 style={styles.dropdown}
                                                 data={riserSides}
@@ -303,14 +321,13 @@ const Land = () =>
                                             value={values.plotBedActualCount}
                                             onChangeText={handleChange('plotBedActualCount')} />
                                         <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Soil Color:</Text>
                                             <Dropdown
                                                 style={styles.dropdown}
-                                                data={soilColor}
-                                                labelField="label"
-                                                valueField="value"
+                                                data={soilDataOptions}
+                                                labelField="soilColor"
+                                                valueField="code"
                                                 value={values.soilId}
-                                                onChange={item => setFieldValue('soilColor', item.value)}
+                                                onChange={item => setFieldValue('soilId', item.value)}
                                                 placeholder="Select Soil Color"
                                             />
                                         </View>
@@ -318,15 +335,14 @@ const Land = () =>
                                             <Text style={styles.error}>{errors.soilId}</Text>
                                         )}
                                         <View style={styles.modalActions}>
-                                            <Pressable style={styles.saveBtn} onPress={handleSubmit}>
+                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>
-                                            </Pressable>
-                                            <Pressable style={styles.cancelBtn} onPress={() => {
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
                                                 setModalVisible(false);
-                                                setIsEditCase(false);
                                             }}>
                                                 <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </Pressable>
+                                            </TouchableOpacity>
                                         </View>
                                     </>
                                 )}

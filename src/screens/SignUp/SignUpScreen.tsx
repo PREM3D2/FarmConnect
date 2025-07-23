@@ -7,7 +7,7 @@ const SignUpScreen = ({ navigation }: any) => {
     <LinearGradient colors={['#fefefdff','#8ff7a4ff']} style={styles.container}>
       <View style={styles.logoContainer}>
         <Image source={require('../../../assets/images/FarmConnect_Logo.png')} style={styles.logo} />
-        <Text style={styles.appName}>FARM CONNECT</Text>
+        <Text style={styles.appName}>AGAATE</Text>
       </View>
       <Text style={styles.header}>Register as new User</Text>
       <Text style={styles.inputLabel}>Mobile Number</Text>
