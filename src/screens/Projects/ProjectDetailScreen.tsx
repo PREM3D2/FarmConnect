@@ -11,7 +11,7 @@ import type { Project, ProjectStackParamList } from './ProjectListScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const initialLayout = { width: Dimensions.get('window').width };
+
 
 
 export const ProjectDetailContext = createContext<Project | undefined>(undefined);
@@ -20,20 +20,6 @@ const ProjectDetailScreen = ({ }) => {
   const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
   const route = useRoute();
   const { project } = (route.params as { project: Project }); // assuming you passed { project: ProjectDetail }
-  const [index, setIndex] = useState(0); // Initial tab is LandRoute
-  const [routes] = useState([
-    { key: 'land', title: 'Land' },
-    { key: 'pumps', title: 'Pumps' },
-    { key: 'crops', title: 'Crops' },
-    { key: 'venturi', title: 'Venturi' },
-  ]);
-
-  const renderScene = SceneMap({
-    land: Land,
-    pumps: Pumps,
-    crops: Crops,
-    venturi: Venturi,
-  });
 
   return (
     <ProjectDetailContext.Provider value={project}>
@@ -45,19 +31,6 @@ const ProjectDetailScreen = ({ }) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{project.projectName}</Text>
         </View>
-        {/* <TabView
-          navigationState={{ index, routes }}
-          renderScene={renderScene}
-          onIndexChange={setIndex}
-          initialLayout={initialLayout}
-          renderTabBar={props => (
-            <TabBar
-              {...props}
-              style={{ backgroundColor: '#388e3c' }}
-              indicatorStyle={{ backgroundColor: '#f8f6fbff' }}
-            />
-          )}
-        /> */}
         <View style={styles.gridContainer}>
           {[
             { key: 'img1', label: 'Lands', img: require('../../../assets/images/Land_Image.png'), route: 'LandScreen' },
@@ -85,6 +58,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:'center',
     paddingTop: 16,
     paddingBottom: 8,
     paddingHorizontal: 16,

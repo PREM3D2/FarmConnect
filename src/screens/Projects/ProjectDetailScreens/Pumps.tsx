@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 import PumpsService from '../../../services/PumpsService';
 import AppTextInput from '../../../components/AppTextInput';
-import { useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
 
 
@@ -17,27 +17,26 @@ const phaseDropdown = [
 ];
 //need to update soilColor dropdown from API
 const pumpWaterOutputDropdown = [
-    { label: 'LPM', value: "LPM" },
-    { label: 'LPH', value:'LPH' },
+    { label: 'LPM', value: 'LPM' },
+    { label: 'LPH', value: 'LPH' },
     { label: 'LPS', value: 'LPS' },
     { label: 'GPM', value: 'GPM' },
 ];
 
 type Pump = {
-  code: number;
-  projectId: number;
-  projectName: string;
-  pumpName: string;
-  pumpHorsePower: number;
-  pumpWaterOutputUnit: string;
-  pumpWaterOutput: number;
-  pumpElectricPhase: 'single' | 'three'; 
-  venturiCount: number;
-  venturiCodes: string[] | null;
+    code: number;
+    projectId: number;
+    projectName: string;
+    pumpName: string;
+    pumpHorsePower: number;
+    pumpWaterOutputUnit: string;
+    pumpWaterOutput: number;
+    pumpElectricPhase: 'single' | 'three';
+    venturiCount: number;
+    venturiCodes: string[] | null;
 };
 
-const Pumps = () => 
-    {
+const Pumps = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editPumps, setEditPumps] = useState<Pump | null>(null);
     const [Pumps, setPumps] = useState<Pump[]>([]);
@@ -70,8 +69,8 @@ const Pumps = () =>
 
     const confirmDelete = (Pump: Pump) => {
         Alert.alert(
-            'Delete Pumps',
-            `Do you want to Delete the Pumps ${Pump.pumpName}?`,
+            'Delete Pump',
+            `Do you want to Delete the Pump ${Pump.pumpName}?`,
             [
                 {
                     text: 'No',
@@ -90,21 +89,19 @@ const Pumps = () =>
     const handleAddPump = async (values: any) => {
         const PumpData = {
             projectId: project?.projectId,
-            PumpName: values.PumpName,
-            PumpLength: parseFloat(values.PumpLength),
-            PumpWidth: parseFloat(values.PumpWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            PumpRiserDistance: parseFloat(values.PumpRiserDistance),
-            PumpBedActualCount: parseInt(values.PumpBedActualCount, 10),
-            soilId: values.soilId,
+            pumpName: values.pumpName,
+            pumpHorsePower: parseFloat(values.pumpHorsePower),
+            pumpWaterOutputUnit: parseFloat(values.pumpWaterOutputUnit),
+            pumpWaterOutput: values.pumpWaterOutput,
+            pumpElectricPhase: values.pumpElectricPhase,
         };
+        console.log('PumpData', PumpData);
         const addPump = async () => {
             try {
-               const res =  await PumpsService.addPump(PumpData);
+                const res = await PumpsService.addPump(PumpData);
                 console.log('Pump added successfully', res);
             } catch (error) {
-              console.error('Error adding pump:', error);
+                console.error('Error adding pump:', error);
             }
         };
         addPump();
@@ -114,15 +111,12 @@ const Pumps = () =>
     const handleUpdatePump = async (values: any) => {
         const PumpData = {
             projectId: project?.projectId,
-            PumpName: values.PumpName,
-            PumpLength: parseFloat(values.PumpLength),
-            PumpWidth: parseFloat(values.PumpWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            PumpRiserDistance: parseFloat(values.PumpRiserDistance),
-            PumpBedActualCount: parseInt(values.PumpBedActualCount, 10),
-            soilId: values.soilId,
-            code: values.code,
+            pumpName: values.pumpName,
+            pumpHorsePower: parseFloat(values.pumpHorsePower),
+            pumpWaterOutputUnit: values.pumpWaterOutputUnit,
+            pumpWaterOutput: values.pumpWaterOutput,
+            pumpElectricPhase: values.pumpElectricPhase,
+            code: editPumps?.code,
         };
         const updatePump = async () => {
             try {
@@ -148,14 +142,16 @@ const Pumps = () =>
         fetchPumps();
     }, [reloadList]);
 
+    const navigation = useNavigation();
+
     const validationSchema = Yup.object().shape({
-      pumpName: Yup.string().max(100).required('Pump name is required'),
-      pumpHorsePower: Yup.number().typeError('Horse power must be a number').required('Horse power is required'),
-      pumpWaterOutputUnit: Yup.string().max(10).required('Water output unit is required'),
-      pumpWaterOutput: Yup.number().typeError('Water output must be a number').required('Water output is required'),
-      pumpElectricPhase: Yup.string()
-        .oneOf(['single', 'three'], 'Phase must be single or three')
-        .required('Electric phase is required'),
+        pumpName: Yup.string().max(100).required('Pump name is required'),
+        pumpHorsePower: Yup.number().typeError('Horse power must be a number').required('Horse power is required'),
+        pumpWaterOutputUnit: Yup.string().max(10).required('Water output unit is required'),
+        pumpWaterOutput: Yup.number().typeError('Water output must be a number').required('Water output is required'),
+        pumpElectricPhase: Yup.string()
+            .oneOf(['single', 'three'], 'Phase must be single or three')
+            .required('Electric phase is required'),
     });
 
     const renderPumps = ({ item }: { item: Pump }) => (
@@ -177,15 +173,21 @@ const Pumps = () =>
             <Text style={styles.field}>Power: {item.pumpHorsePower}</Text>
             <Text style={styles.field}>Output: {item.pumpWaterOutput}</Text>
             <Text style={styles.field}>Phase: {item.pumpElectricPhase}</Text>
-            <Text style={styles.field}>Venturies: {item.venturiCodes}</Text>           
+            <Text style={styles.field}>Venturies: {item.venturiCodes}</Text>
         </View>
     );
 
     return (
         <View style={{ flex: 1 }}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Pumps</Text>
+            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add Pumps</Text>
+                <Text style={styles.addBtnText}>Add Pump</Text>
             </TouchableOpacity>
             <FlatList
                 data={Pumps}
@@ -202,14 +204,14 @@ const Pumps = () =>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editPumps ? 'Edit Pumps' : 'Add Pumps'}</Text>
+                            <Text style={styles.modalTitle}>{editPumps ? 'Edit Pump' : 'Add Pump'}</Text>
                             <Formik
                                 initialValues={{
                                     pumpName: editPumps?.pumpName || '',
                                     pumpHorsePower: editPumps?.pumpHorsePower?.toString() || '',
-                                    pumpElectricPhase: editPumps?.pumpElectricPhase?.toString() || '',                                    
+                                    pumpElectricPhase: editPumps?.pumpElectricPhase?.toString() || '',
                                     pumpWaterOutputUnit: editPumps?.pumpWaterOutputUnit?.toString() || '',
-                                    pumpWaterOutput: editPumps?.pumpWaterOutput?.toString() || '',                                   
+                                    pumpWaterOutput: editPumps?.pumpWaterOutput?.toString() || '',
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
@@ -225,18 +227,18 @@ const Pumps = () =>
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+                                        <Text>{JSON.stringify(errors, null, 2)} </Text>
                                         <AppTextInput
                                             placeholder="Pump Name"
                                             maxLength={45}
-                                            onBlur={() => handleBlur('pumpName')}
+                                            onBlur={handleBlur('pumpName')}
                                             value={values.pumpName}
                                             required={true}
                                             error={touched.pumpName && errors.pumpName ? errors.pumpName : ''}
                                             onChangeText={handleChange('pumpName')} />
                                         <AppTextInput
                                             placeholder="HorsePower"
-                                            onBlur={() => handleBlur('pumpHorsePower')}
+                                            onBlur={handleBlur('pumpHorsePower')}
                                             keyboardType="decimal-pad"
                                             value={values.pumpHorsePower}
                                             required={true}
@@ -256,13 +258,13 @@ const Pumps = () =>
                                         </View>
                                         <AppTextInput
                                             placeholder="Water Output"
-                                            onBlur={() => handleBlur('pumpWaterOutput')}
+                                            onBlur={handleBlur('pumpWaterOutput')}
                                             keyboardType="decimal-pad"
                                             value={values.pumpWaterOutput}
                                             required={true}
                                             error={touched.pumpWaterOutput && errors.pumpWaterOutput ? errors.pumpWaterOutput : ''}
                                             onChangeText={handleChange('pumpWaterOutput')} />
-                                        
+
                                         <View style={styles.dropdownRow}>
                                             <Text style={styles.dropdownLabel}>Output</Text>
                                             <Dropdown
@@ -299,6 +301,25 @@ const Pumps = () =>
 };
 
 const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingBottom: 8,
+        paddingHorizontal: 16,
+        backgroundColor: '#f7faff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    backBtn: {
+        padding: 4,
+        marginRight: 8,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
     addBtn: {
         flexDirection: 'row',
         alignItems: 'center',

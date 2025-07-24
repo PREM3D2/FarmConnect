@@ -7,7 +7,7 @@ import { Formik } from 'formik';
 import AppTextInput from '../../../components/AppTextInput';
 import VenturiService from '../../../services/VenturiService';
 import { Project } from '../ProjectListScreen';
-import { useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { ActivityIndicator } from 'react-native-paper';
 
 
@@ -110,6 +110,8 @@ const Venturi = () => {
         setReloadList(!reloadList);
     }
 
+    const navigation = useNavigation();
+
     useEffect(() => {
         setIsLoading(true)
         const fetchventuris = async () => {
@@ -126,7 +128,7 @@ const Venturi = () => {
 
     const validationSchema = Yup.object().shape({
         venturiName: Yup.string().max(45).required('Name is required'),
-        venturiNumber: Yup.number().typeError('Venturi Number must be a number').required('Venturi Number is required'),
+        venturiNumber: Yup.string().required('Serial Number is required'),
     });
 
     const renderVenturi = ({ item }: { item: Venturi }) => (
@@ -150,92 +152,112 @@ const Venturi = () => {
     );
 
     return (
-        <> {isLoading ? 
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#388e3c" />
-            </View> : 
-            <View style={{ flex: 1 }}>
-                <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                    <Icon name="plus-circle" size={24} color='#388e3c' />
-                    <Text style={styles.addBtnText}>Add Venturi</Text>
+        <View style={{ flex: 1 }}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
-                <FlatList
-                    data={venturis}
-                    renderItem={renderVenturi}
-                    keyExtractor={item => item.code.toString()}
-                    contentContainerStyle={{ padding: 16 }}
-                />
-                <Modal
-                    visible={modalVisible}
-                    animationType="slide"
-                    transparent={true}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                                <Text style={styles.modalTitle}>{editventuri ? 'Edit Venturi' : 'Add Venturi'}</Text>
-                                <Formik
-                                    initialValues={{
-                                        venturiName: editventuri?.venturiName || '',
-                                        venturiNumber: editventuri?.venturiNumber?.toString() || '',
-                                        code: editventuri?.code || '',
-                                    }}
-                                    validationSchema={validationSchema}
-                                    onSubmit={(values, { resetForm }) => {
-                                        if (!editventuri) {
-                                            handleAddventuri(values);
-                                        }
-                                        else {
-                                            handleUpdateventuri(values);
-                                        }
-                                        setModalVisible(false);
-                                        resetForm();
-                                    }}
-                                >
-                                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                        <>
-                                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                            <AppTextInput
-                                                placeholder="Name"
-                                                maxLength={45}
-                                                onBlur={() => handleBlur('venturiName')}
-                                                value={values.venturiName}
-                                                required={true}
-                                                error={touched.venturiName && errors.venturiName ? errors.venturiName : ''}
-                                                onChangeText={handleChange('venturiName')} />
-                                            <AppTextInput
-                                                placeholder="Serail Number"
-                                                onBlur={() => handleBlur('venturiNumber')}
-                                                keyboardType="decimal-pad"
-                                                value={values.venturiNumber}
-                                                required={true}
-                                                error={touched.venturiNumber && errors.venturiNumber ? errors.venturiNumber : ''}
-                                                onChangeText={handleChange('venturiNumber')} />
+                <Text style={styles.headerTitle}>Venturi's</Text>
+            </View>
+            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                <Icon name="plus-circle" size={24} color='#388e3c' />
+                <Text style={styles.addBtnText}>Add Venturi</Text>
+            </TouchableOpacity>
+            <FlatList
+                data={venturis}
+                renderItem={renderVenturi}
+                keyExtractor={item => item.code.toString()}
+                contentContainerStyle={{ padding: 16 }}
+            />
+            <Modal
+                visible={modalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                            <Text style={styles.modalTitle}>{editventuri ? 'Edit Venturi' : 'Add Venturi'}</Text>
+                            <Formik
+                                initialValues={{
+                                    venturiName: editventuri?.venturiName || '',
+                                    venturiNumber: editventuri?.venturiNumber?.toString() || '',
+                                    code: editventuri?.code || '',
+                                }}
+                                validationSchema={validationSchema}
+                                onSubmit={(values, { resetForm }) => {
+                                    if (!editventuri) {
+                                        handleAddventuri(values);
+                                    }
+                                    else {
+                                        handleUpdateventuri(values);
+                                    }
+                                    setModalVisible(false);
+                                    resetForm();
+                                }}
+                            >
+                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                                    <>
+                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+                                        <AppTextInput
+                                            placeholder="Name"
+                                            maxLength={45}
+                                            onBlur={handleBlur('venturiName')}
+                                            value={values.venturiName}
+                                            required={true}
+                                            error={touched.venturiName && errors.venturiName ? errors.venturiName : ''}
+                                            onChangeText={handleChange('venturiName')} />
+                                        <AppTextInput
+                                            placeholder="Serail Number"
+                                            onBlur={handleBlur('venturiNumber')}
+                                            keyboardType="decimal-pad"
+                                            value={values.venturiNumber}
+                                            required={true}
+                                            error={touched.venturiNumber && errors.venturiNumber ? errors.venturiNumber : ''}
+                                            onChangeText={handleChange('venturiNumber')} />
 
-                                            <View style={styles.modalActions}>
-                                                <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                                    <Text style={styles.saveBtnText}>Save</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                                    setModalVisible(false);
-                                                }}>
-                                                    <Text style={styles.cancelBtnText}>Cancel</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        </>
-                                    )}
-                                </Formik>
-                            </ScrollView>
-                        </View>
+                                        <View style={styles.modalActions}>
+                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                                <Text style={styles.saveBtnText}>Save</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                                setModalVisible(false);
+                                            }}>
+                                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </>
+                                )}
+                            </Formik>
+                        </ScrollView>
                     </View>
-                </Modal>
-            </View>}
-        </>
+                </View>
+            </Modal>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingBottom: 8,
+        paddingHorizontal: 16,
+        backgroundColor: '#f7faff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    backBtn: {
+        padding: 4,
+        marginRight: 8,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
     addBtn: {
         flexDirection: 'row',
         alignItems: 'center',

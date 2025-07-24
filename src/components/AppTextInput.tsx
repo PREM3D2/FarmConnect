@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, Animated, TextStyle } from 'react-native';
 
+import type { NativeSyntheticEvent, TextInputFocusEventData } from 'react-native';
 interface AppTextInputProps {
   value: string;
   onChangeText: (text: string) => void;
-  onBlur?: () => void;
+  onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
   onFocus?: () => void;
   placeholder: string;
   required?: boolean;
@@ -35,6 +36,7 @@ const AppTextInput: React.FC<AppTextInputProps> = ({
       duration: 150,
       useNativeDriver: false,
     }).start();
+    console.log(error ? 'Error state' : 'Normal state', { isFocused, value, error });
   }, [isFocused, value]);
 
   const labelStyle: Animated.AnimatedProps<TextStyle> = {
@@ -68,9 +70,9 @@ const AppTextInput: React.FC<AppTextInputProps> = ({
           setIsFocused(true);
           onFocus && onFocus();
         }}
-        onBlur={() => {
+        onBlur={e => {
           setIsFocused(false);
-          onBlur && onBlur();
+          onBlur && onBlur(e);
         }}
         maxLength={maxLength}
         keyboardType={keyboardType}

@@ -5,13 +5,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import LandService from '../../../services/LandService';
-import { useContext } from 'react';
-import { ProjectDetailContext } from '../ProjectDetailScreen';
-import AppTextInput from '../../../components/AppTextInput';
-import AppDropdown from '../../../components/AppDropdown';
-import { useNavigation, useRoute } from '@react-navigation/core';
-import { Project } from '../ProjectListScreen';
+import LandService from '../../../../services/LandService';
+import AppTextInput from '../../../../components/AppTextInput';
+import { Project } from '../../ProjectListScreen';
 
 
 const riserSides = [
@@ -47,15 +43,14 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const Land = ({ }) => {
+const CropHarvest = (props: any) => {
     const [modalVisible, setModalVisible] = useState(false);
-    const route = useRoute();
-    const { project } = (route.params as { project: Project });
+    const project = props.ProjectInfo
     const [editLand, setEditLand] = useState<Plot | null>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
     const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
-    const navigation = useNavigation();
+
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
@@ -80,8 +75,8 @@ const Land = ({ }) => {
 
     const confirmDelete = (plot: Plot) => {
         Alert.alert(
-            'Delete Land',
-            `Do you want to Delete the Land ${plot.plotName}?`,
+            'Delete CropHarvest',
+            `Do you want to Delete the CropHarvest ${plot.plotName}?`,
             [
                 {
                     text: 'No',
@@ -99,7 +94,7 @@ const Land = ({ }) => {
 
     const handleAddPlot = async (values: any) => {
         const plotData = {
-            projectId: project?.projectId,
+            // projectId: project?.projectId,
             plotName: values.plotName,
             plotLength: parseFloat(values.plotLength),
             plotWidth: parseFloat(values.plotWidth),
@@ -121,7 +116,7 @@ const Land = ({ }) => {
 
     const handleUpdatePlot = async (values: any) => {
         const plotData = {
-            projectId: project?.projectId,
+            // projectId: project?.projectId,
             plotName: values.plotName,
             plotLength: parseFloat(values.plotLength),
             plotWidth: parseFloat(values.plotWidth),
@@ -208,15 +203,9 @@ const Land = ({ }) => {
 
     return (
         <View style={{ flex: 1 }}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Lands</Text>
-            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add Land</Text>
+                <Text style={styles.addBtnText}>Add CropHarvest</Text>
             </TouchableOpacity>
             <FlatList
                 data={plots}
@@ -233,7 +222,7 @@ const Land = ({ }) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editLand ? 'Edit Land' : 'Add Land'}</Text>
+                            <Text style={styles.modalTitle}>{editLand ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
                             <Formik
                                 initialValues={{
                                     plotName: editLand?.plotName || '',
@@ -264,14 +253,14 @@ const Land = ({ }) => {
                                         <AppTextInput
                                             placeholder="Plot Name"
                                             maxLength={45}
-                                            onBlur={handleBlur('plotName')}
+                                            onBlur={() => handleBlur('plotName')}
                                             value={values.plotName}
                                             required={true}
                                             error={touched.plotName && errors.plotName ? errors.plotName : ''}
                                             onChangeText={handleChange('plotName')} />
                                         <AppTextInput
                                             placeholder="Length"
-                                            onBlur={handleBlur('plotLength')}
+                                            onBlur={() => handleBlur('plotLength')}
                                             keyboardType="decimal-pad"
                                             value={values.plotLength}
                                             required={true}
@@ -279,7 +268,7 @@ const Land = ({ }) => {
                                             onChangeText={handleChange('plotLength')} />
                                         <AppTextInput
                                             placeholder="Width"
-                                            onBlur={handleBlur('plotWidth')}
+                                            onBlur={() => handleBlur('plotWidth')}
                                             keyboardType="decimal-pad"
                                             value={values.plotWidth}
                                             required={true}
@@ -312,7 +301,7 @@ const Land = ({ }) => {
                                         {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
                                         <AppTextInput
                                             placeholder="Riser Distance"
-                                            onBlur={handleBlur('plotRiserDistance')}
+                                            onBlur={() => handleBlur('plotRiserDistance')}
                                             required={true}
                                             error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
                                             keyboardType="decimal-pad"
@@ -320,7 +309,7 @@ const Land = ({ }) => {
                                             onChangeText={handleChange('plotRiserDistance')} />
                                         <AppTextInput
                                             placeholder="Bed Actual Count"
-                                            onBlur={handleBlur('plotBedActualCount')}
+                                            onBlur={() => handleBlur('plotBedActualCount')}
                                             required={true}
                                             error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
                                             keyboardType="decimal-pad"
@@ -362,30 +351,6 @@ const Land = ({ }) => {
 };
 
 const styles = StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingTop: 16,
-        paddingBottom: 8,
-        paddingHorizontal: 16,
-        backgroundColor: '#f7faff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    backBtn: {
-        padding: 4,
-        marginRight: 8,
-    },
-    backText: {
-        color: '#388e3c',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
     addBtn: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -536,4 +501,6 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Land;
+export default CropHarvest;
+
+
