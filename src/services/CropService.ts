@@ -12,7 +12,7 @@ const CropService = {
     try {
       const token = getJwtToken();
       const response = await axios.get(
-        `${API_BASE_URL}/crop/${projectId}`,
+        `${API_BASE_URL}/plotcrop?projectCode=${projectId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -40,6 +40,23 @@ const CropService = {
       throw error;
     }
   },
+
+  getallCropOptions: async () => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.get(`${API_BASE_URL}/crops`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 
   getAllSoils: async () => {
     try {

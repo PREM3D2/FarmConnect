@@ -36,7 +36,6 @@ const AppTextInput: React.FC<AppTextInputProps> = ({
       duration: 150,
       useNativeDriver: false,
     }).start();
-    console.log(error ? 'Error state' : 'Normal state', { isFocused, value, error });
   }, [isFocused, value]);
 
   const labelStyle: Animated.AnimatedProps<TextStyle> = {

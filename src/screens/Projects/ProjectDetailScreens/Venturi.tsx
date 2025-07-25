@@ -91,6 +91,7 @@ const Venturi = () => {
     }
 
     const handleUpdateventuri = async (values: any) => {
+        setIsLoading(true);
         const venturiData = {
             projectId: project?.projectId,
             venturiName: values.venturiName,
@@ -104,6 +105,9 @@ const Venturi = () => {
                 console.log(response, "res")
             } catch (error) {
                 console.error("Error updte venturi:", error);
+            }
+            finally {
+                setIsLoading(false);
             }
         };
         updateventuri();
@@ -153,6 +157,11 @@ const Venturi = () => {
 
     return (
         <View style={{ flex: 1 }}>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#388e3c" />
+                </View>
+            )}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
@@ -406,6 +415,17 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
+    loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: '100%',
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+},
 });
 
 export default Venturi;

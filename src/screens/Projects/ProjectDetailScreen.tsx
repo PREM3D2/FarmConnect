@@ -36,7 +36,7 @@ const ProjectDetailScreen = ({ }) => {
             { key: 'img1', label: 'Lands', img: require('../../../assets/images/Land_Image.png'), route: 'LandScreen' },
             { key: 'img2', label: 'Pumps', img: require('../../../assets/images/Pump_Image.png'), route: 'PumpScreen' },
             { key: 'img3', label: 'Venturis', img: require('../../../assets/images/Venturi_Image.png'), route: 'VenturiScreen' },
-            { key: 'img4', label: 'Crops', img: require('../../../assets/images/Crop_Image.png'), route: 'CropScreen' },
+            { key: 'img4', label: 'Crops', img: require('../../../assets/images/Crop_Image.png'), route: 'CropListScreen' },
             { key: 'img5', label: 'Schedules', img: require('../../../assets/images/Schedule_Image.png'), route: 'LandScreen' },
           ].map((item) => (
             <View style={styles.gridItem}  key={item.key}>
