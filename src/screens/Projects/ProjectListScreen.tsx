@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ProjectService from '../../services/ProjectService';
+import { showToast } from '../../components/ShowToast';
 
 export type Project = {
   projectId: number;
@@ -34,6 +35,8 @@ const ProjectListScreen = () => {
       try {
         const response = await ProjectService.getProjects();
         setProjects(response.result || []);
+        showToast('success', 'Data Fetched', 'Your Project Details are Fetched');
+        console.log("res", response)
       } catch (error) {
       }
     };

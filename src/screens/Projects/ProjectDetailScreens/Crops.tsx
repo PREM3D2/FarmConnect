@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+
 import CropHome from './CropTabs/CropHome';
 import CropStacking from './CropTabs/CropStacking';
 import CropNursery from './CropTabs/CropNursery';
@@ -11,13 +11,17 @@ import CropProtection from './CropTabs/CropProtection';
 import CropCultivation from './CropTabs/CropCultivation';
 import CropHarvest from './CropTabs/CropHarvest';
 import CropUproot from './CropTabs/CropUproot';
+import CustomTabView from '../../../components/CustomTabView';
+import { Project } from '../ProjectListScreen';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
 const Crops = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  // Try to get project name from route params if available
+  const { project } = (route.params as { project: Project });
+  const { code } = (route.params as { code: number });
+
   const projectName = (route.params && (route.params as any).project?.projectName) || 'Project';
 
   const [index, setIndex] = useState(0);
@@ -31,41 +35,104 @@ const Crops = () => {
     { key: 'uproot', title: 'Up Root', params: route.params },
   ]);
 
-  // const renderScene = SceneMap({
-  //   home: CropHome,
-  //   stacking: CropStacking,
-  //   nursery: CropNursery,
-  //   protection: CropProtection,
-  //   cultivation: CropCultivation,
-  //   harvest: CropHarvest,
-  //   uproot: CropUproot,
-  // });
+  const Home = () => (
+    <View style={styles.scene}>
+      <CropHome project={project} cropCode ={code} />
+    </View>
+  );
+
+  const Stacking = () => (
+    <View style={styles.scene}>
+      <Text>stack Screen</Text>
+    </View>
+  );
+
+  const Cultivation = () => (
+    <View style={styles.scene}>
+      <Text>Home Screen</Text>
+    </View>
+  );
+
+  const Harvest = () => (
+    <View style={styles.scene}>
+      <Text>stack Screen</Text>
+    </View>
+  );
+  const Protection = () => (
+    <View style={styles.scene}>
+      <Text>Home Screen</Text>
+    </View>
+  );
+
+  const Uproot = () => (
+    <View style={styles.scene}>
+      <Text>stack Screen</Text>
+    </View>
+  );
+
+  const Nursery = () => (
+    <View style={styles.scene}>
+      <Text>stack Screen</Text>
+    </View>
+  );
 
 
-  const renderScene = ({ route }: {
-    route: {
-      params: any; key: string; title: string
-    }
-  }) => {
-    switch (route.key) {
-      case 'home':
-        return <CropHome projectInfo={route.params} />;
-      case 'stacking':
-        return <CropStacking projectInfo={route.params} />;
-      case 'cultivation':
-        return <CropCultivation projectInfo={route.params} />;
-      case 'harvest':
-        return <CropHarvest projectInfo={route.params} />;
-      case 'protection':
-        return <CropProtection projectInfo={route.params} />;
-      case 'uproot':
-        return <CropUproot projectInfo={route.params} />;
-      case 'nursery':
-        return <CropNursery projectInfo={route.params} />;
-      default:
-        return 'home';
-    }
+  // const renderScene = ({ route }: { route: { key: string; title: string; params: any } }) => {
+  //   switch (route.key) {
+  //     case 'home':
+  //       return <CropHome projectInfo={route.params} />;
+  //     case 'stacking':
+  //       return <CropStacking projectInfo={route.params} />;
+  //     case 'cultivation':
+  //       return <CropCultivation projectInfo={route.params} />;
+  //     case 'harvest':
+  //       return <CropHarvest projectInfo={route.params} />;
+  //     case 'protection':
+  //       return <CropProtection projectInfo={route.params} />;
+  //     case 'uproot':
+  //       return <CropUproot projectInfo={route.params} />;
+  //     case 'nursery':
+  //       return <CropNursery projectInfo={route.params} />;
+  //     default:
+  //       return null;
+  //   }
+  // };
+
+  const scenes = {
+    home: Home,
+    stacking: Stacking,
+    cultivation: Cultivation,
+    harvest: Harvest,
+    protection: Protection,
+    uproot: Uproot,
+    nursery: Nursery
+    // positions: Positions,
+    // executed: Executed,
+    // pending: Pending,
+    // rejected: Rejected,
   };
+
+  const renderTabBar = (props: any) => (
+    <TabBar
+      {...props}
+      scrollEnabled={true} // ✅ Make tabs scrollable
+      indicatorStyle={styles.indicator}
+      style={styles.tabBar}
+      tabStyle={{ width: 'auto' }} // ✅ Allow dynamic width for each tab
+      renderLabel={({
+        route,
+        focused,
+      }: {
+        route: { key: string; title: string; params: any };
+        focused: boolean;
+        color: string;
+      }) => (
+        <Text style={[styles.label, focused && styles.labelFocused]}>
+          {route.title}
+        </Text>
+      )}
+    />
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -76,24 +143,9 @@ const Crops = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Crops</Text>
       </View>
-      <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={initialLayout}
-        renderTabBar={props => (
-          <TabBar
-            {...props}
-            scrollEnabled
-            style={{ backgroundColor: '#388e3c' }} // Optional: make sure it blends well
-            indicatorStyle={{ backgroundColor: '#f8f6fbff' }}
-            activeColor="#ffffff"
-            inactiveColor="#f0f0f0"
-            tabStyle={{ width: 'auto', paddingHorizontal: 12 }} // <-- Key line
-          //labelStyle={{ fontSize: 14, fontWeight: 'bold' }} // Optional: tighten text
-          />
-
-        )}
+      <CustomTabView
+        routes={routes}
+        scenes={scenes}
       />
     </View>
   );
@@ -110,6 +162,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  scene: {
+    flex: 1,
+  },
   backBtn: {
     padding: 4,
     marginRight: 8,
@@ -119,11 +174,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  tabContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+  tabBar: {
+    elevation: 0,
+  },
+  label: {
+    color: '#888', // Inactive tab color
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  labelFocused: {
+    color: '#388e3c', // Active tab label color (Zerodha green)
+    fontWeight: '700',
+  },
+  indicator: {
+    backgroundColor: '#388e3c', // Active tab underline
+    height: 2,
+    borderRadius: 1,
   },
 });
 

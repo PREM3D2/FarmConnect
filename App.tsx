@@ -6,8 +6,9 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider, useSelector } from 'react-redux';
 import store, { RootState } from './src/store/store';
 import MainStack from './src/navigation/MainStack';
-import AppTabs from './src/navigation/AppTabs';
 import AppHeaderLayout from './src/components/AppHeaderLayout'; // Import AppHeaderLayout
+import Toast from 'react-native-toast-message';
+import toastConfig from './src/components/ToastConfig';
 
 const AppContent = () => {
   const token = useSelector((state: RootState) => state.auth.token);
@@ -25,6 +26,7 @@ const AppContent = () => {
           <AuthStack />
         )}
       </NavigationContainer>
+      <Toast config={toastConfig} />
     </SafeAreaView>
   );
 };

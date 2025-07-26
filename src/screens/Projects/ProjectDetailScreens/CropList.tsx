@@ -250,7 +250,7 @@ const CropList = ({ }) => {
     }
 
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen")}>
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen",{ project: project,code: item.code})}>
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>

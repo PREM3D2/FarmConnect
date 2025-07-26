@@ -41,6 +41,22 @@ const CropService = {
     }
   },
 
+  getcropDetailbycropid: async (projectId:number ,cropId: number) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.get(`${API_BASE_URL}/plotcrop/edit?projectCode=${projectId}&plotCropCode=${cropId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   getallCropOptions: async () => {
     try {
       const token = getJwtToken();

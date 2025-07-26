@@ -156,11 +156,11 @@ const Land = ({ }) => {
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
         const fetchPlots = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await LandService.getplotsbyprojectid(project.projectId);
+                console.log(response,"res")
                 setPlots(response.result || []);
             } catch (error) {
             }
@@ -193,7 +193,12 @@ const Land = ({ }) => {
                 then: schema => schema.required('Riser Side is required'),
                 otherwise: schema => schema.notRequired().nullable(),
             }),
-        soilId: Yup.string().required('soil type is required'),
+        soilId: Yup.string()
+            .when('isRiser', {
+                is: true,
+                then: schema => schema.required('Soil Type is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
     });
 
     const renderLand = ({ item }: { item: Plot }) => (
@@ -283,12 +288,13 @@ const Land = ({ }) => {
                                             setFieldValue('riserSide', '', false);
                                             setFieldValue('plotRiserDistance', '', false);
                                             setFieldValue('plotBedActualCount', '', false);
+                                            setFieldValue('soilId', '', false);
                                         }
                                     }, [values.isRiser]);
 
                                     return (
                                         <>
-                                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+                                            <Text>{JSON.stringify(errors, null, 2)} </Text>
                                             <AppTextInput
                                                 placeholder="Plot Name"
                                                 maxLength={45}
@@ -328,6 +334,7 @@ const Land = ({ }) => {
                                             </View>
                                             {values.isRiser && (
                                                 <>
+
                                                     <AppDropdown
                                                         required={true}
                                                         data={riserSides}
@@ -354,18 +361,19 @@ const Land = ({ }) => {
                                                         keyboardType="decimal-pad"
                                                         value={values.plotBedActualCount}
                                                         onChangeText={handleChange('plotBedActualCount')} />
+                                                    <AppDropdown
+                                                        required={true}
+                                                        data={soilDataOptions}
+                                                        labelField="soilColor"
+                                                        valueField="code"
+                                                        value={values.soilId}
+                                                        error={touched.soilId && errors.soilId ? errors.soilId : ''}
+                                                        onChange={item => setFieldValue('soilId', item.value)}
+                                                        placeholder="Soil"
+                                                    />
                                                 </>
                                             )}
-                                            <AppDropdown
-                                                required={true}
-                                                data={soilDataOptions}
-                                                labelField="soil"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                error={touched.soilId && errors.soilId ? errors.soilId : ''}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Soil"
-                                            />
+
                                             <View style={styles.modalActions}>
                                                 <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                     <Text style={styles.saveBtnText}>Save</Text>
