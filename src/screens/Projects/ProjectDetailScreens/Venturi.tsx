@@ -11,7 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/core';
 import { ActivityIndicator } from 'react-native-paper';
 
 
-type Venturi = {
+export type Venturi = {
     code: number;
     projectId: number;
     projectName: string;

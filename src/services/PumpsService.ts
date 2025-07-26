@@ -72,6 +72,23 @@ const PumpService = {
     }
   },
 
+  mapVenturiesToPump: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      console.log("requestBody", requestBody)
+      const response = await axios.put(`${API_BASE_URL}/pump/venturi/map`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   deletePump: async (PumpId:any) => {
    try {
       const bearerToken = getJwtToken();

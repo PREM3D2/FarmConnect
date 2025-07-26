@@ -10,6 +10,10 @@ import AppTextInput from '../../../components/AppTextInput';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
 import AppDropdown from '../../../components/AppDropdown';
+import { PaperProvider } from 'react-native-paper';
+import TagCompoent from '../../../components/TagComponent';
+import VenturiService from '../../../services/VenturiService';
+import { Venturi } from './Venturi';
 
 
 const phaseDropdown = [
@@ -40,11 +44,14 @@ type Pump = {
 const Pumps = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editPumps, setEditPumps] = useState<Pump | null>(null);
-    const [Pumps, setPumps] = useState<Pump[]>([]);
+    const [pumps, setPumps] = useState<Pump[]>([]);
+    const [venturis, setVenturis] = useState<Venturi[]>([]);
     const route = useRoute();
     const { project } = (route.params as { project: Project });
     const [reloadList, setReloadList] = useState(false);
     const [isEditCase, setIsEditCase] = useState(false);
+    const [isMapVenturi, setIsMapVenturi] = useState(false);
+    // const [selectedLinkedPump, setSelectedLinkedPump  ] = useState<Pump | null>(null);
 
     const openAddModal = () => {
         setEditPumps(null);
@@ -131,11 +138,24 @@ const Pumps = () => {
     }
 
     useEffect(() => {
+        const fetchVentuies = async () => {
+            if (typeof project?.projectId !== 'number') return;
+            try {
+                const response = await VenturiService.getventurisbyprojectid(project.projectId);
+                setVenturis(response.result || []);
+            } catch (error) {
+            }
+        };
+        fetchVentuies();
+    }, []);
+
+    useEffect(() => {
         const fetchPumps = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await PumpsService.getPumpsbyprojectid(project.projectId);
                 setPumps(response.result || []);
+                console.log("res",response.result )
             } catch (error) {
             }
         };
@@ -160,6 +180,7 @@ const Pumps = () => {
                 <Text style={styles.PumpsName}>{item.pumpName}</Text>
                 <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => {
+                        setIsMapVenturi(false)
                         openEditModal(item);
                         setIsEditCase(true);
                     }}>
@@ -167,6 +188,13 @@ const Pumps = () => {
                     </TouchableOpacity>
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => {
+                        openEditModal(item);
+                        setIsMapVenturi(true);
+                        setIsEditCase(false)
+                    }}>
+                        <MaterialCommunityIcons name="link" size={26} color="#388e3c" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -176,6 +204,27 @@ const Pumps = () => {
             <Text style={styles.field}>Venturies: {item.venturiCodes}</Text>
         </View>
     );
+
+    const handleSelectedTags = (selectedTags: any) => {
+
+        const requestBody = {
+            code: editPumps?.code,
+            venturiCodes: selectedTags.map((tag:string) => {return Number(tag)})
+        }
+        console.log('Selected vents:', selectedTags);
+        const mapVenturistoPump = async () => {
+            try {
+                const response = await PumpsService.mapVenturiesToPump(requestBody);
+                // setPumps(response.result || []);
+                console.log("response", response)
+            } catch (error) {
+                console.log("error", error)
+            }
+        };
+        mapVenturistoPump();
+        setModalVisible(false);
+        setIsEditCase(false);
+    }
 
     return (
         <View style={{ flex: 1 }}>
@@ -190,7 +239,7 @@ const Pumps = () => {
                 <Text style={styles.addBtnText}>Add Pump</Text>
             </TouchableOpacity>
             <FlatList
-                data={Pumps}
+                data={pumps}
                 renderItem={renderPumps}
                 keyExtractor={item => item.code.toString()}
                 contentContainerStyle={{ padding: 16 }}
@@ -202,94 +251,108 @@ const Pumps = () => {
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editPumps ? 'Edit Pump' : 'Add Pump'}</Text>
-                            <Formik
-                                initialValues={{
-                                    pumpName: editPumps?.pumpName || '',
-                                    pumpHorsePower: editPumps?.pumpHorsePower?.toString() || '',
-                                    pumpElectricPhase: editPumps?.pumpElectricPhase?.toString() || '',
-                                    pumpWaterOutputUnit: editPumps?.pumpWaterOutputUnit?.toString() || '',
-                                    pumpWaterOutput: editPumps?.pumpWaterOutput?.toString() || '',
-                                }}
-                                validationSchema={validationSchema}
-                                onSubmit={(values, { resetForm }) => {
-                                    if (!isEditCase) {
-                                        handleAddPump(values);
-                                    }
-                                    else {
-                                        handleUpdatePump(values);
-                                    }
-                                    setModalVisible(false);
-                                    resetForm();
-                                }}
-                            >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                    <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Pump Name"
-                                            maxLength={45}
-                                            onBlur={handleBlur('pumpName')}
-                                            value={values.pumpName}
-                                            required={true}
-                                            error={touched.pumpName && errors.pumpName ? errors.pumpName : ''}
-                                            onChangeText={handleChange('pumpName')} />
-                                        <AppTextInput
-                                            placeholder="HorsePower"
-                                            onBlur={handleBlur('pumpHorsePower')}
-                                            keyboardType="decimal-pad"
-                                            value={values.pumpHorsePower}
-                                            required={true}
-                                            error={touched.pumpHorsePower && errors.pumpHorsePower ? errors.pumpHorsePower : ''}
-                                            onChangeText={handleChange('pumpHorsePower')} />
-                                        <AppDropdown
-                                            required={true}
-                                            data={phaseDropdown}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.pumpElectricPhase}
-                                            error={touched.pumpElectricPhase && errors.pumpElectricPhase ? errors.pumpElectricPhase : ''}
-                                            onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                            placeholder="Electric Phase"
-                                        />
-                                        <AppTextInput
-                                            placeholder="Water Output"
-                                            onBlur={handleBlur('pumpWaterOutput')}
-                                            keyboardType="decimal-pad"
-                                            value={values.pumpWaterOutput}
-                                            required={true}
-                                            error={touched.pumpWaterOutput && errors.pumpWaterOutput ? errors.pumpWaterOutput : ''}
-                                            onChangeText={handleChange('pumpWaterOutput')} />
-                                         <AppDropdown
-                                            required={true}
-                                            data={pumpWaterOutputDropdown}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.pumpWaterOutputUnit}
-                                            error={touched.pumpWaterOutputUnit && errors.pumpWaterOutputUnit ? errors.pumpWaterOutputUnit : ''}
-                                            onChange={item => setFieldValue('pumpWaterOutputUnit', item.value)}
-                                            placeholder="Water Output Unit"
-                                        />
-                                        <View style={styles.modalActions}>
-                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                                <Text style={styles.saveBtnText}>Save</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                                setModalVisible(false);
-                                                setIsEditCase(false);
-                                            }}>
-                                                <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </>
-                                )}
-                            </Formik>
-                        </ScrollView>
-                    </View>
+                    <View></View>
+                    {isMapVenturi ? (
+                        <View style={styles.modalContent}>
+                            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                                <PaperProvider>
+                                    <TagCompoent data={venturis.map((vent) => { return { code: vent.code.toString(), label: vent.venturiName } })} handleSubmit={handleSelectedTags} existingTags={["1","2"]} handleCancel={() => setModalVisible(false)} />
+                                </PaperProvider>
+                            </ScrollView>
+                        </View>)
+                        :
+                        (
+                            <View style={styles.modalContent}>
+                                <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                                    <Text style={styles.modalTitle}>{editPumps ? 'Edit Pump' : 'Add Pump'}</Text>
+                                    <Formik
+                                        initialValues={{
+                                            pumpName: editPumps?.pumpName || '',
+                                            pumpHorsePower: editPumps?.pumpHorsePower?.toString() || '',
+                                            pumpElectricPhase: editPumps?.pumpElectricPhase?.toString() || '',
+                                            pumpWaterOutputUnit: editPumps?.pumpWaterOutputUnit?.toString() || '',
+                                            pumpWaterOutput: editPumps?.pumpWaterOutput?.toString() || '',
+                                        }}
+                                        validationSchema={validationSchema}
+                                        onSubmit={(values, { resetForm }) => {
+                                            if (!isEditCase) {
+                                                handleAddPump(values);
+                                            }
+                                            else {
+                                                handleUpdatePump(values);
+                                            }
+                                            setModalVisible(false);
+                                            resetForm();
+                                        }}
+                                    >
+                                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                                            <>
+                                                {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+                                                <AppTextInput
+                                                    placeholder="Pump Name"
+                                                    maxLength={45}
+                                                    onBlur={handleBlur('pumpName')}
+                                                    value={values.pumpName}
+                                                    required={true}
+                                                    error={touched.pumpName && errors.pumpName ? errors.pumpName : ''}
+                                                    onChangeText={handleChange('pumpName')} />
+                                                <AppTextInput
+                                                    placeholder="HorsePower"
+                                                    onBlur={handleBlur('pumpHorsePower')}
+                                                    keyboardType="decimal-pad"
+                                                    value={values.pumpHorsePower}
+                                                    required={true}
+                                                    error={touched.pumpHorsePower && errors.pumpHorsePower ? errors.pumpHorsePower : ''}
+                                                    onChangeText={handleChange('pumpHorsePower')} />
+                                                <AppDropdown
+                                                    required={true}
+                                                    data={phaseDropdown}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    value={values.pumpElectricPhase}
+                                                    error={touched.pumpElectricPhase && errors.pumpElectricPhase ? errors.pumpElectricPhase : ''}
+                                                    onChange={item => setFieldValue('pumpElectricPhase', item.value)}
+                                                    placeholder="Electric Phase"
+                                                />
+                                                <AppTextInput
+                                                    placeholder="Water Output"
+                                                    onBlur={handleBlur('pumpWaterOutput')}
+                                                    keyboardType="decimal-pad"
+                                                    value={values.pumpWaterOutput}
+                                                    required={true}
+                                                    error={touched.pumpWaterOutput && errors.pumpWaterOutput ? errors.pumpWaterOutput : ''}
+                                                    onChangeText={handleChange('pumpWaterOutput')} />
+                                                <AppDropdown
+                                                    required={true}
+                                                    data={pumpWaterOutputDropdown}
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    value={values.pumpWaterOutputUnit}
+                                                    error={touched.pumpWaterOutputUnit && errors.pumpWaterOutputUnit ? errors.pumpWaterOutputUnit : ''}
+                                                    onChange={item => setFieldValue('pumpWaterOutputUnit', item.value)}
+                                                    placeholder="Water Output Unit"
+                                                />
+                                                <View style={styles.modalActions}>
+                                                    <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                                        <Text style={styles.saveBtnText}>Save</Text>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                                        setModalVisible(false);
+                                                        setIsEditCase(false);
+                                                    }}>
+                                                        <Text style={styles.cancelBtnText}>Cancel</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </>
+                                        )}
+                                    </Formik>
+                                </ScrollView>
+                            </View>
+                        )
+                    }
                 </View>
             </Modal>
+
         </View>
     );
 };
@@ -379,6 +442,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 18,
         width: Dimensions.get('window').width * 0.95,
         maxHeight: Dimensions.get('window').height * 0.92,
+        elevation: 6,
+        alignSelf: 'center',
+        justifyContent: 'center',
+    },
+    modalTagContent: {
+        backgroundColor: '#fff',
+        borderRadius: 18,
+        paddingVertical: 24,
+        paddingHorizontal: 18,
+        width: Dimensions.get('window').width * 0.95,
+        minHeight: Dimensions.get('window').height * 0.30,
         elevation: 6,
         alignSelf: 'center',
         justifyContent: 'center',
