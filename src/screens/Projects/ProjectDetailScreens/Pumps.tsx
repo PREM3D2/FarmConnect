@@ -10,7 +10,7 @@ import AppTextInput from '../../../components/AppTextInput';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
 import AppDropdown from '../../../components/AppDropdown';
-import { PaperProvider } from 'react-native-paper';
+import { ActivityIndicator, PaperProvider } from 'react-native-paper';
 import TagCompoent from '../../../components/TagComponent';
 import VenturiService from '../../../services/VenturiService';
 import { Venturi } from './Venturi';
@@ -42,6 +42,7 @@ type Pump = {
 };
 
 const Pumps = () => {
+    const [isLoading, setIsLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [editPumps, setEditPumps] = useState<Pump | null>(null);
     const [pumps, setPumps] = useState<Pump[]>([]);
@@ -150,16 +151,18 @@ const Pumps = () => {
     }, []);
 
     useEffect(() => {
+        setIsLoading(true);
         const fetchPumps = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await PumpsService.getPumpsbyprojectid(project.projectId);
                 setPumps(response.result || []);
-                console.log("res",response.result )
+                setIsLoading(false);
             } catch (error) {
             }
         };
         fetchPumps();
+        
     }, [reloadList]);
 
     const navigation = useNavigation();
@@ -211,7 +214,6 @@ const Pumps = () => {
             code: editPumps?.code,
             venturiCodes: selectedTags.map((tag:string) => {return Number(tag)})
         }
-        console.log('Selected vents:', selectedTags);
         const mapVenturistoPump = async () => {
             try {
                 const response = await PumpsService.mapVenturiesToPump(requestBody);
@@ -228,6 +230,11 @@ const Pumps = () => {
 
     return (
         <View style={{ flex: 1 }}>
+             {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#388e3c" />
+                </View>
+            )}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
@@ -256,7 +263,7 @@ const Pumps = () => {
                         <View style={styles.modalContent}>
                             <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
                                 <PaperProvider>
-                                    <TagCompoent data={venturis.map((vent) => { return { code: vent.code.toString(), label: vent.venturiName } })} handleSubmit={handleSelectedTags} existingTags={["1","2"]} handleCancel={() => setModalVisible(false)} />
+                                    <TagCompoent label ='Venturi' data={venturis.map((vent) => { return { code: vent.code.toString(), label: vent.venturiName } })} handleSubmit={handleSelectedTags} existingTags={["1","2"]} handleCancel={() => setModalVisible(false)} />
                                 </PaperProvider>
                             </ScrollView>
                         </View>)
@@ -535,6 +542,17 @@ const styles = StyleSheet.create({
         color: '#333',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
     },
 });
 

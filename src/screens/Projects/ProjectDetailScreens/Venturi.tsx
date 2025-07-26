@@ -9,6 +9,7 @@ import VenturiService from '../../../services/VenturiService';
 import { Project } from '../ProjectListScreen';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { ActivityIndicator } from 'react-native-paper';
+import { showToast } from '../../../components/ShowToast';
 
 
 export type Venturi = {
@@ -44,8 +45,10 @@ const Venturi = () => {
     const handleDelete = (venturi: Venturi) => {
         const deleteventuri = async () => {
             try {
-                const response = await VenturiService.deleteventuri(venturi.code);
+                await VenturiService.deleteventuri(venturi.code);
+                showToast('success', 'Delete Venturi', 'Venturi has been Deleted Successfully');
             } catch (error) {
+                showToast('error', 'Delete Venturi', 'Error while deleting Venturi');
             }
         };
         deleteventuri();
@@ -75,15 +78,19 @@ const Venturi = () => {
         const venturiData = {
             projectId: project?.projectId,
             venturiName: values.venturiName,
-            venturiNumber: parseFloat(values.venturiNumber),
+            venturiNumber: values.venturiNumber,
         };
-        console.log(venturiData, "venturiData");
         const addventuri = async () => {
             try {
                 const response = await VenturiService.addventuri(venturiData);
-                console.log(response, "res")
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Add Venturi", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Add Venturi", response.result.errorMessage);
+                }
             } catch (error) {
-                console.error("Error adding venturi:", error);
             }
         };
         addventuri();
@@ -91,23 +98,25 @@ const Venturi = () => {
     }
 
     const handleUpdateventuri = async (values: any) => {
-        setIsLoading(true);
         const venturiData = {
             projectId: project?.projectId,
             venturiName: values.venturiName,
-            venturiNumber: parseFloat(values.venturiNumber),
+            venturiNumber: values.venturiNumber,
             code: values.code,
         };
-        console.log(venturiData, "venturiData");
         const updateventuri = async () => {
             try {
                 const response = await VenturiService.updateventuri(venturiData);
-                console.log(response, "res")
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Edit Venturi", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Edit Venturi", response.result.errorMessage);
+                }
             } catch (error) {
-                console.error("Error updte venturi:", error);
             }
             finally {
-                setIsLoading(false);
             }
         };
         updateventuri();
@@ -117,17 +126,17 @@ const Venturi = () => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        setIsLoading(true)
+        setIsLoading(true);
         const fetchventuris = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await VenturiService.getventurisbyprojectid(project.projectId);
                 setventuris(response.result || []);
+                setIsLoading(false);
             } catch (error) {
             }
         };
         fetchventuris();
-        setIsLoading(false);
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
@@ -151,7 +160,7 @@ const Venturi = () => {
                 </View>
             </View>
             <Text style={styles.field}>{item.venturiNumber}</Text>
-            <Text style={styles.field}>{item.pumpCodes}</Text>
+            {/* <Text style={styles.field}>{item.pumpCodes}</Text> */}
         </View>
     );
 
@@ -208,7 +217,6 @@ const Venturi = () => {
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
                                         <AppTextInput
                                             placeholder="Name"
                                             maxLength={45}
@@ -220,7 +228,6 @@ const Venturi = () => {
                                         <AppTextInput
                                             placeholder="Serail Number"
                                             onBlur={handleBlur('venturiNumber')}
-                                            keyboardType="decimal-pad"
                                             value={values.venturiNumber}
                                             required={true}
                                             error={touched.venturiNumber && errors.venturiNumber ? errors.venturiNumber : ''}
@@ -416,16 +423,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: '100%',
-    width: '100%',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-},
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
+    },
 });
 
 export default Venturi;

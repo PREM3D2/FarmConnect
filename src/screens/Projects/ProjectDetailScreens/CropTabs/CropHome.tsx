@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, Text, StyleSheet, Dimensions, ScrollView, } from 'react-native';
 import * as Yup from 'yup';
-import { Formik } from 'formik';
 import LandService from '../../../../services/LandService';
-import AppTextInput from '../../../../components/AppTextInput';
-import AppDropdown from '../../../../components/AppDropdown';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
-import DateControl from '../../../../components/DateControl';
 import { Plot } from '.././Land';
+import { Card, Divider, PaperProvider } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 const CropCultivaionTypeOptions = [
@@ -178,8 +174,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
-        const fetchCrops = async () => {
+        const fetchCropDetail = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
@@ -187,7 +182,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
             } catch (error) {
             }
         };
-        fetchCrops();
+        fetchCropDetail();
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
@@ -208,12 +203,9 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
         plantationMethod: Yup.string().required('Plantation method is required'),
     })
 
-    const toggleAccordion = (code: number) => {
-        setExpandedItemCode(prev => (prev === code ? null : code));
-    };
-
     const getListItems = (item: CropDetail) => {
         const irrigationTypes = [];
+        if (!item) return [];
         if (item.irrigationDrip) irrigationTypes.push('Drip')
         if (item.irrigationSprinker) irrigationTypes.push('Sprinkler')
         if (item.irrigationFlood) irrigationTypes.push('Flood')
@@ -250,95 +242,104 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
         return listItems
     }
 
-    // const renderLand = ({ item }: { item: CropDetail }) => (
-    //     <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen")}>
-    //         <View style={styles.cardHeader}>
-    //             <Text style={styles.landName}>{item.cropName}</Text>
-    //             <View style={styles.cardActions}>
-    //                 <TouchableOpacity onPress={() => openEditModal(item)}>
-    //                     <Icon name="pencil" size={22} color="#388e3c" />
-    //                 </TouchableOpacity>
-    //             </View>
-    //         </View>
-
-    //         <Text style={styles.field}>
-    //             <Text style={styles.fieldLabel}>Land Name: </Text>
-    //             <Text style={styles.fieldValue}>{item.plotName}</Text>
-    //         </Text>
-
-    //         <Text style={styles.field}>
-    //             <Text style={styles.fieldLabel}>Cultivation Type: </Text>
-    //             <Text style={styles.fieldValue}>{item.cropCultivationType}</Text>
-    //         </Text>
-    //         <Text style={styles.field}>
-    //             <Text style={styles.fieldLabel}>Crop Type: </Text>
-    //             <Text style={styles.fieldValue}>{item.cropType}</Text>
-    //         </Text>
-    //         <Text style={styles.field}>
-    //             <Text style={styles.fieldLabel}>Plantation Method: </Text>
-    //             <Text style={styles.fieldValue}>{item.plantationMethod}</Text>
-    //         </Text>
-
-    //         {/* Accordion Toggle */}
-    //         <View style={{ alignItems: 'flex-end', marginTop: 8 }}>
-    //             <TouchableOpacity onPress={() => toggleAccordion(item.code)}>
-    //                 <Text style={styles.accordionToggle}>
-    //                     {expandedItemCode === item.code ? 'Minimize ▲' : 'Expand ▼'}
-    //                 </Text>
-    //             </TouchableOpacity>
-    //         </View>
-
-    //         {/* Accordion Content */}
-    //         {expandedItemCode === item.code && (
-    //             <View style={styles.accordionContent}>
-    //                 {getListItems(item).map(({ label, value }, index) => (
-    //                     <Text key={index} style={styles.field}>
-    //                         <Text style={styles.fieldLabel}>{label}: </Text>
-    //                         <Text style={styles.fieldValue}>{value}</Text>
-    //                     </Text>
-    //                 ))}
-    //             </View>
-    //         )}
-    //     </TouchableOpacity>
-    // );
+    const formatDate = (dateStr:any, withTime = false) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        const options: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            ...(withTime && { hour: '2-digit', minute: '2-digit', hour12: true })
+        };
+        return date.toLocaleString('en-US', options);
+    };
 
     return (
-        <View style={{ flex: 1 }}>
-            <View style={styles.card} >
-                <View style={styles.cardHeader}>
-                    <Text style={styles.landName}>{cropDetail?.cropName}</Text>
-                </View>
+        // <View style={{ flex: 1 }}>
+        //     <View style={styles.card} >
+        //         <View style={styles.cardHeader}>
+        //             <Text style={styles.landName}>{cropDetail?.cropName}</Text>
+        //         </View>
 
-                <Text style={styles.field}>
-                    <Text style={styles.fieldLabel}>Land Name: </Text>
-                    <Text style={styles.fieldValue}>{cropDetail?.plotName}</Text>
-                </Text>
+        //         <Text style={styles.field}>
+        //             <Text style={styles.fieldLabel}>Land Name: </Text>
+        //             <Text style={styles.fieldValue}>{cropDetail?.plotName}</Text>
+        //         </Text>
 
-                <Text style={styles.field}>
-                    <Text style={styles.fieldLabel}>Cultivation Type: </Text>
-                    <Text style={styles.fieldValue}>{cropDetail?.cropCultivationType}</Text>
-                </Text>
-                <Text style={styles.field}>
-                    <Text style={styles.fieldLabel}>Crop Type: </Text>
-                    <Text style={styles.fieldValue}>{cropDetail?.cropType}</Text>
-                </Text>
-                <Text style={styles.field}>
-                    <Text style={styles.fieldLabel}>Plantation Method: </Text>
-                    <Text style={styles.fieldValue}>{cropDetail?.plantationMethod}</Text>
-                </Text>
-                {getListItems(cropDetail!).map(({ label, value }, index) => (
-                    <Text key={index} style={styles.field}>
-                        <Text style={styles.fieldLabel}>{label}: </Text>
-                        <Text style={styles.fieldValue}>{value}</Text>
-                    </Text>
-                ))}
+        //         <Text style={styles.field}>
+        //             <Text style={styles.fieldLabel}>Cultivation Type: </Text>
+        //             <Text style={styles.fieldValue}>{cropDetail?.cropCultivationType}</Text>
+        //         </Text>
+        //         <Text style={styles.field}>
+        //             <Text style={styles.fieldLabel}>Crop Type: </Text>
+        //             <Text style={styles.fieldValue}>{cropDetail?.cropType}</Text>
+        //         </Text>
+        //         <Text style={styles.field}>
+        //             <Text style={styles.fieldLabel}>Plantation Method: </Text>
+        //             <Text style={styles.fieldValue}>{cropDetail?.plantationMethod}</Text>
+        //         </Text>
+        //         {getListItems(cropDetail!).map(({ label, value }, index) => (
+        //             <Text key={index} style={styles.field}>
+        //                 <Text style={styles.fieldLabel}>{label}: </Text>
+        //                 <Text style={styles.fieldValue}>{value}</Text>
+        //             </Text>
+        //         ))}
 
-            </View>
-        </View>
+        //     </View>
+        // </View>
+        <PaperProvider>
+            <ScrollView contentContainerStyle={styles.container}>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <Text style={styles.row}><MaterialCommunityIcons name="map-marker" size={18} color="#333" />  Land: {cropDetail?.plotName}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="leaf" size={18} color="#4CAF50" />  Cultivation: {cropDetail?.cropCultivationType}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="office-building" size={18} color="#607D8B" />  Crop Type: {cropDetail?.cropType}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="tag" size={18} color="#9C27B0" />  Plantation Method: {cropDetail?.plantationMethod}</Text>
+
+                        <Divider style={styles.divider} />
+
+                        <Text style={styles.row}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {formatDate(cropDetail?.plantationNurseryRaised, true)}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="water" size={18} color="#2196F3" />  Irrigation: {cropDetail?.irrigationDrip}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking: {formatDate(cropDetail?.stackingDate, true)}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.section}><MaterialCommunityIcons name="shield" size={18} color="#FF9800" />  Protections:</Text>
+                        <Text style={styles.subItem}>- Required: {cropDetail?.protectionsRequiredCount}</Text>
+                        <Text style={styles.subItem}>- Deployed: {cropDetail?.protectionsDeployedCount}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.section}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation:</Text>
+                        <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.cultivationExpectedDate)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.cultivationActualDate)}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
+                        <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestStartExpectedDate)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestStartActualDate, true)}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.row}><MaterialCommunityIcons name="chart-bar" size={18} color="#03A9F4" />  Yield Interval: {cropDetail?.harvestIntervalCountExpected} | {cropDetail?.uprootingActualDate}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.section}><MaterialCommunityIcons name="calendar-end" size={18} color="#E91E63" />  Harvest End:</Text>
+                        <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestEndActualDate, true)}</Text>
+                    </Card.Content>
+                </Card>
+            </ScrollView>
+        </PaperProvider>
+
     );
 };
 
 const styles = StyleSheet.create({
+    container: { padding: 16, marginVertical:10 },
+    card: { borderRadius: 12, elevation: 3 , backgroundColor: "#fff"},
+    row: { fontSize: 16, marginVertical: 4 },
+    section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
+    subItem: { fontSize: 15, marginLeft: 20, marginVertical: 2 },
+    divider: { marginVertical: 8 },
+
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -378,13 +379,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 16,
-        elevation: 2,
-    },
+    // card: {
+    //     backgroundColor: '#fff',
+    //     borderRadius: 10,
+    //     padding: 16,
+    //     marginBottom: 16,
+    //     elevation: 2,
+    // },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',

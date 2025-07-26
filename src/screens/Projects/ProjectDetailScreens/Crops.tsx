@@ -43,7 +43,7 @@ const Crops = () => {
 
   const Stacking = () => (
     <View style={styles.scene}>
-      <Text>stack Screen</Text>
+      <CropStacking project={project} cropCode ={code}/>
     </View>
   );
 

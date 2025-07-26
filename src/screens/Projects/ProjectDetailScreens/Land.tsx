@@ -2,16 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import LandService from '../../../services/LandService';
-import { useContext } from 'react';
-import { ProjectDetailContext } from '../ProjectDetailScreen';
 import AppTextInput from '../../../components/AppTextInput';
 import AppDropdown from '../../../components/AppDropdown';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
+import { showToast } from '../../../components/ShowToast';
+import { ActivityIndicator } from 'react-native-paper';
 
 
 const riserSides = [
@@ -24,11 +23,6 @@ type Soil = {
     soilColor: string,
     soilDesc: string
 }
-//need to update soilColor dropdown from API
-const soilColor = [
-    { label: 'Red', value: 1 },
-    { label: 'Black', value: 2 },
-];
 
 export type Plot = {
     code: number;
@@ -50,6 +44,7 @@ export type Plot = {
 const Land = ({ }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const route = useRoute();
+    const [isLoading, setIsLoading] = useState(true);
     const { project } = (route.params as { project: Project });
     const [editLand, setEditLand] = useState<Plot | null>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
@@ -70,8 +65,10 @@ const Land = ({ }) => {
     const handleDelete = (plot: Plot) => {
         const deletePlot = async () => {
             try {
-                const response = await LandService.deletePlot(plot.code);
+                await LandService.deletePlot(plot.code);
+                showToast('success', 'Delete Land', 'Land has been Deleted Successfully');
             } catch (error) {
+                showToast('error', 'Delete Land', 'Error while Delteing Land');
             }
         };
         deletePlot();
@@ -111,7 +108,14 @@ const Land = ({ }) => {
         };
         const addPlot = async () => {
             try {
-                await LandService.addPlot(plotData);
+                const response = await LandService.addPlot(plotData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Add Land", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Add Land", response.result.errorMessage);
+                }
             } catch (error) {
             }
         };
@@ -134,7 +138,14 @@ const Land = ({ }) => {
         };
         const updatePlot = async () => {
             try {
-                await LandService.updatePlot(plotData);
+                const response = await LandService.updatePlot(plotData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Edit Land", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Edit Land", response.result.errorMessage);
+                }
             } catch (error) {
             }
         };
@@ -147,21 +158,20 @@ const Land = ({ }) => {
             try {
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
-                console.log("res:", response.result);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchSoilData();
     }, []);
 
     useEffect(() => {
+        setIsLoading(true);
         const fetchPlots = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await LandService.getplotsbyprojectid(project.projectId);
-                console.log(response,"res")
                 setPlots(response.result || []);
+                setIsLoading(false);
             } catch (error) {
             }
         };
@@ -193,12 +203,7 @@ const Land = ({ }) => {
                 then: schema => schema.required('Riser Side is required'),
                 otherwise: schema => schema.notRequired().nullable(),
             }),
-        soilId: Yup.string()
-            .when('isRiser', {
-                is: true,
-                then: schema => schema.required('Soil Type is required'),
-                otherwise: schema => schema.notRequired().nullable(),
-            }),
+        soilId: Yup.string().required('Soil Type is Required')
     });
 
     const renderLand = ({ item }: { item: Plot }) => (
@@ -231,6 +236,11 @@ const Land = ({ }) => {
 
     return (
         <View style={{ flex: 1 }}>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#388e3c" />
+                </View>
+            )}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
@@ -282,19 +292,16 @@ const Land = ({ }) => {
                                 }}
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => {
-                                    // Clear riser fields if isRiser is unchecked
                                     React.useEffect(() => {
                                         if (!values.isRiser) {
                                             setFieldValue('riserSide', '', false);
                                             setFieldValue('plotRiserDistance', '', false);
                                             setFieldValue('plotBedActualCount', '', false);
-                                            setFieldValue('soilId', '', false);
                                         }
                                     }, [values.isRiser]);
 
                                     return (
                                         <>
-                                            <Text>{JSON.stringify(errors, null, 2)} </Text>
                                             <AppTextInput
                                                 placeholder="Plot Name"
                                                 maxLength={45}
@@ -361,19 +368,19 @@ const Land = ({ }) => {
                                                         keyboardType="decimal-pad"
                                                         value={values.plotBedActualCount}
                                                         onChangeText={handleChange('plotBedActualCount')} />
-                                                    <AppDropdown
-                                                        required={true}
-                                                        data={soilDataOptions}
-                                                        labelField="soilColor"
-                                                        valueField="code"
-                                                        value={values.soilId}
-                                                        error={touched.soilId && errors.soilId ? errors.soilId : ''}
-                                                        onChange={item => setFieldValue('soilId', item.value)}
-                                                        placeholder="Soil"
-                                                    />
+
                                                 </>
                                             )}
-
+                                            <AppDropdown
+                                                required={true}
+                                                data={soilDataOptions}
+                                                labelField="soilColor"
+                                                valueField="code"
+                                                value={values.soilId}
+                                                error={touched.soilId && errors.soilId ? errors.soilId : ''}
+                                                onChange={item => setFieldValue('soilId', item.code)}
+                                                placeholder="Soil"
+                                            />
                                             <View style={styles.modalActions}>
                                                 <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                     <Text style={styles.saveBtnText}>Save</Text>
@@ -568,6 +575,17 @@ const styles = StyleSheet.create({
         color: '#333',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
     },
 });
 

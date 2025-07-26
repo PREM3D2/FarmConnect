@@ -8,6 +8,9 @@ import { Formik } from 'formik';
 import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
+import CropService from '../../../../services/CropService';
+import { AppFunctions } from '../../../../Helpers/AppFunctions';
+import DateControl from '../../../../components/DateControl';
 
 
 const riserSides = [
@@ -43,10 +46,10 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const CropStacking = (props:any) => {
+const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
-    const  project  = props.ProjectInfo
-    const [editLand, setEditLand] = useState<Plot | null>(null);
+    const [cropDetail, setCropDetail] = useState<any>();
+    const [editLand, setEditLand] = useState<any>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
     const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
@@ -150,69 +153,74 @@ const CropStacking = (props:any) => {
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
-        const fetchPlots = async () => {
-            if (typeof project?.projectId !== 'number') return;
+        const fetchCropDetail = async () => {
             try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setPlots(response.result || []);
+                const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
+                setCropDetail(response.result || []);
+                console.log(response.result, "res")
             } catch (error) {
             }
         };
-        fetchPlots();
+        fetchCropDetail();
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
-        plotName: Yup.string().max(45).required('Name is required'),
-        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-        isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
-        soilId: Yup.string().required('soil type is required'),
+        stackingDate: Yup.string().required('Date is required'),
     });
 
-    const renderLand = ({ item }: { item: Plot }) => (
+    const renderLand = ({ item }: { item: any }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{item.plotName}</Text>
+                <Text style={styles.landName}>{item.plotCropName
+                }</Text>
                 <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => {
                         openEditModal(item);
                     }}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
+                    {/* <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </View>
-            <Text style={styles.field}>Total Area: {item.plotTotalArea}</Text>
-            <Text style={styles.field}>Soil: {item.soilColor}</Text>
-            {item.isRiser && (
+            <Text style={styles.field}>Stacking Date: {item.stackingDate}</Text>
+            <Text style={styles.field}>Stacking Status: {item.stackingStatus}</Text>
+            {/* {item.isRiser && (
                 <View style={styles.sectionRiser}>
                     <Text style={styles.sectionTitle}>Riser</Text>
                     <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
                     <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
                     <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
                 </View>
-            )}
+            )} */}
         </View>
     );
 
     return (
         <View style={{ flex: 1 }}>
-            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add CropStacking</Text>
-            </TouchableOpacity>
-            <FlatList
-                data={plots}
-                renderItem={renderLand}
-                keyExtractor={item => item.code.toString()}
-                contentContainerStyle={{ padding: 16 }}
-            />
+            {!cropDetail?.stackingStatus
+                &&
+                <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                    <Icon name="plus-circle" size={24} color='#388e3c' />
+                    <Text style={styles.addBtnText}>Add Stacking</Text>
+                </TouchableOpacity>
+            }
+            {cropDetail?.stackingStatus
+                &&
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
+                        <View style={styles.cardActions}>
+                            <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
+                                <Icon name="pencil" size={22} color="#388e3c" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking Date: {AppFunctions.formatDate(cropDetail?.stackingDate, true)}</Text>
+                    <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Stacking is Installed"</Text>
+                </View>
+            }
             <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -225,14 +233,7 @@ const CropStacking = (props:any) => {
                             <Text style={styles.modalTitle}>{editLand ? 'Edit CropStacking' : 'Add CropStacking'}</Text>
                             <Formik
                                 initialValues={{
-                                    plotName: editLand?.plotName || '',
-                                    plotLength: editLand?.plotLength?.toString() || '',
-                                    plotWidth: editLand?.plotWidth?.toString() || '',
-                                    isRiser: editLand?.isRiser || false,
-                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
-                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilId: editLand?.soilId || '',
-                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
+                                    stackingDate: editLand?.stackingDate || '',
                                     code: editLand?.code || '',
                                 }}
                                 validationSchema={validationSchema}
@@ -250,85 +251,16 @@ const CropStacking = (props:any) => {
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
                                         {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            onBlur={() => handleBlur('plotName')}
-                                            value={values.plotName}
+                                        <DateControl
+                                            value={values.stackingDate}
+                                            setFieldValue={setFieldValue}
+                                            name="stackingDate"
+                                            error={touched.stackingDate && errors.stackingDate ? errors.stackingDate : ''}
+                                            touched={touched.stackingDate}
+                                            placeholder="Stacking Date"
                                             required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
-                                        <AppTextInput
-                                            placeholder="Length"
-                                            onBlur={() => handleBlur('plotLength')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotLength}
-                                            required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
-                                        <AppTextInput
-                                            placeholder="Width"
-                                            onBlur={() => handleBlur('plotWidth')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotWidth}
-                                            required={true}
-                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
-                                            onChangeText={handleChange('plotWidth')} />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Riser</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={riserSides}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.riserSide}
-                                                onChange={item => setFieldValue('riserSide', item.value)}
-                                                placeholder="Select Riser Side"
-                                            />
-                                        </View>
-                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <AppTextInput
-                                            placeholder="Riser Distance"
-                                            onBlur={() => handleBlur('plotRiserDistance')}
-                                            required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <AppTextInput
-                                            placeholder="Bed Actual Count"
-                                            onBlur={() => handleBlur('plotBedActualCount')}
-                                            required={true}
-                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={soilDataOptions}
-                                                labelField="soilColor"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Select Soil Color"
-                                            />
-                                        </View>
-                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
-                                            <Text style={styles.error}>{errors.soilId}</Text>
-                                        )}
+                                        />
+
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>

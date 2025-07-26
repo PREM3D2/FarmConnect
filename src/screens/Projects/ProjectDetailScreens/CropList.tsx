@@ -12,6 +12,7 @@ import { Project } from '../ProjectListScreen';
 import CropService from '../../../services/CropService';
 import DateControl from '../../../components/DateControl';
 import { Plot } from './Land';
+import { ActivityIndicator } from 'react-native-paper';
 
 
 const CropCultivaionTypeOptions = [
@@ -99,6 +100,7 @@ const CropList = ({ }) => {
     const [landOptions, setLandOptions] = useState<Plot[]>([]);
     const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
     const navigation = useNavigation();
+    const [isLoading, setIsLoading] = useState(true);
 
     const openAddModal = () => {
         setEditLand(null);
@@ -177,12 +179,13 @@ const CropList = ({ }) => {
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
+        setIsLoading(true);
         const fetchCrops = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
                 const response = await CropService.getcropsbyprojectid(project.projectId);
                 setCrops(response.result || []);
+                setIsLoading(false);
             } catch (error) {
             }
         };
@@ -303,6 +306,11 @@ const CropList = ({ }) => {
 
     return (
         <View style={{ flex: 1 }}>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#388e3c" />
+                </View>
+            )}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
@@ -401,7 +409,7 @@ const CropList = ({ }) => {
                                         <View style={styles.checkboxRow}>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.plantationNurseryRaised)}
+                                                onPress={() => setFieldValue('plantationNurseryRaised', !values.plantationNurseryRaised)}
                                             >
                                                 <MaterialCommunityIcons
                                                     name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
@@ -711,6 +719,17 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 8,
         marginTop: 8,
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
     },
 });
 

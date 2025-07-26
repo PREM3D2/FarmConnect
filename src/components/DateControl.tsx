@@ -13,8 +13,8 @@ export interface DateControlProps {
   value: string | null;
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => void;
   name: string;
-  error?: string;
-  touched?: boolean;
+  error?: any;
+  touched?: any;
   placeholder?: string;
   required?: boolean;
   style?: any;
@@ -66,6 +66,7 @@ const DateControl: React.FC<DateControlProps> = ({
   const handleConfirm = (date: Date) => {
     setPickerVisible(false);
     setFieldValue(name, formatDate(date));
+    console.log("On cahnges",name, formatDate(date) )
   };
 
   return (
