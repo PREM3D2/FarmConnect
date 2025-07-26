@@ -2,23 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import LandService from '../../../services/LandService';
-import { useContext } from 'react';
-import { ProjectDetailContext } from '../ProjectDetailScreen';
 import AppTextInput from '../../../components/AppTextInput';
 import AppDropdown from '../../../components/AppDropdown';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
 import CropService from '../../../services/CropService';
 import DateControl from '../../../components/DateControl';
+import { Plot } from './Land';
 
 
 const CropCultivaionTypeOptions = [
-    { label: 'sowing', value: 'sowing' },
-    { label: 'plantation', value: 'plantation' },
+    { label: 'Sowing', value: 'sowing' },
+    { label: 'Plantation', value: 'plantation' },
 ];
 
 type Soil = {
@@ -33,30 +31,17 @@ type CropOption = {
     cropDesc: string
 }
 
-//need to update soilColor dropdown from API
 const plantationOptions = [
-    { label: 'zigzag', value: 'zigzag' },
-    { label: 'parallel', value: 'parallel' },
-    { label: 'single-line', value: 'single-line' },
+    { label: 'Zigzag', value: 'zigzag' },
+    { label: 'Parallel', value: 'parallel' },
+    { label: 'Single-line', value: 'single-line' },
 ];
 
-
-type Plot = {
-    code: number;
-    projectId: number;
-    projectName: string;
-    plotName: string;
-    plotLength: number;
-    plotWidth: number;
-    isRiser: boolean;
-    riserCalMethod: string;
-    plotRiserDistance: number;
-    plotBedActualCount: number;
-    soilId: number;
-    soilColor: string;
-    plotTotalArea: number;
-    plotBedEstimateCount: number;
-};
+const cropTypeDropdown = [
+    { label: 'Main', value: 'main' },
+    { label: 'Protection', value: 'protection' },
+    { label: 'Border', value: 'border' },
+];
 
 type CropDetail = {
     code: number;
@@ -112,52 +97,17 @@ const CropList = ({ }) => {
     const [reloadList, setReloadList] = useState(false);
     const [cropOptions, setCropOptions] = useState<CropOption[]>([]);
     const [landOptions, setLandOptions] = useState<Plot[]>([]);
+    const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
     const navigation = useNavigation();
+
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
     };
 
-    const cropTypeDropdown = [
-        { label: 'main', value: 'main' },
-        { label: 'protection', value: 'protection' },
-        { label: 'border', value: 'border' },
-    ];
-
-
     const openEditModal = (land: any) => {
         setEditLand(land);
         setModalVisible(true);
-    };
-
-    const handleDelete = (plot: Plot) => {
-        const deletePlot = async () => {
-            try {
-                const response = await LandService.deletePlot(plot.code);
-            } catch (error) {
-            }
-        };
-        deletePlot();
-        setReloadList(!reloadList);
-    };
-
-    const confirmDelete = (plot: Plot) => {
-        Alert.alert(
-            'Delete CropList',
-            `Do you want to Delete the CropList ${plot.plotName}?`,
-            [
-                {
-                    text: 'No',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes',
-                    onPress: () => handleDelete(plot),
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: true }
-        );
     };
 
     const handleAddPlot = async (values: any) => {
@@ -240,115 +190,44 @@ const CropList = ({ }) => {
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
-        plotName: Yup.string().max(45).required('Name is required'),
-        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-        isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
-        soilId: Yup.string().required('soil type is required'),
-    });
-
-    const cropDetailSchema = Yup.object().shape({
-        code: Yup.number().required('Code is required'),
-        projectId: Yup.number().required('Project ID is required'),
-        projectName: Yup.string().max(100).required('Project name is required'),
-        plotId: Yup.number().required('Plot ID is required'),
-        plotName: Yup.string().max(100).required('Plot name is required'),
-        cropId: Yup.number().required('Crop ID is required'),
-        cropName: Yup.string().max(100).required('Crop name is required'),
-        cropType: Yup.string().oneOf(['main', 'intercrop']).required('Crop type is required'),
-        cropCultivationType: Yup.string().oneOf(['plantation', 'direct-seeding']).required('Cultivation type is required'),
-        plantationNurseryRaised: Yup.boolean().required(),
-        plantationNurseryRaisedDate: Yup.string().nullable().required('Nursery date is required'),
-        seedCompanyName: Yup.string().max(100).required('Seed company name is required'),
-        seedCompanyVarietyNumber: Yup.string().max(50).required('Variety number is required'),
-        seedCompanyLogoImageAvailable: Yup.boolean().required(),
-        seedCompanyLogoImage: Yup.string().nullable(),
-        irrigationDrip: Yup.boolean().required(),
-        irrigationSprinker: Yup.boolean().required(),
-        irrigationFlood: Yup.boolean().required(),
-        bed: Yup.boolean().required(),
-        bedCount: Yup.string().matches(/^\d+$/, 'Bed count must be a number').required('Bed count is required'),
-        plantationMethod: Yup.string().oneOf(['single-line', 'double-line']).required('Plantation method is required'),
-        stackingStatus: Yup.boolean().required(),
-        stackingDate: Yup.string().nullable(),
-        cultivationStatus: Yup.boolean().required(),
-        cultivationExpectedDate: Yup.string().nullable(),
-        cultivationActualDate: Yup.string().nullable(),
-        harvestStartStatus: Yup.boolean().required(),
-        harvestStartExpectedDate: Yup.string().nullable(),
-        harvestStartActualDate: Yup.string().nullable(),
-        harvestYieldKilosExpected: Yup.number().nullable(),
-        harvestIntervalCountExpected: Yup.number().required(),
-        harvestEndStatus: Yup.boolean().required(),
-        harvestEndExpectedDate: Yup.string().nullable(),
-        harvestEndActualDate: Yup.string().nullable(),
-        harvestDoneCount: Yup.number().required(),
-        harvestYieldKilosCollected: Yup.number().nullable(),
-        uprootingStatus: Yup.boolean().required(),
-        uprootingExpectedDate: Yup.string().nullable(),
-        uprootingActualDate: Yup.string().nullable(),
-        protectionsRequired: Yup.boolean().required(),
-        protectionsRequiredCount: Yup.number().required(),
-        protectionsDeployedCount: Yup.number().required(),
-    });
-
-    const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
+        // projectId: Yup.number().required('Project ID is required'),
+        plotId: Yup.string().required('Land Name is required'),
+        cropId: Yup.string().required('Crop Name is required'),
+        cropType: Yup.string().oneOf(['main', 'protection', 'border']).required('Crop type is required'),
+        cropCultivationType: Yup.string().oneOf(['sowing', 'plantation']).required('Cultivation type is required'),
+        plantationNurseryRaised: Yup.boolean().nullable(),
+        plantationNurseryRaisedDate: Yup.string().required('Nursery Raised Date is required'),
+        seedCompanyName: Yup.string().max(100).required('Plantation company name is required'),
+        seedCompanyVarietyNumber: Yup.string().max(50).required('Plantation Variety number is required'),
+        irrigationDrip: Yup.boolean().nullable(),
+        irrigationSprinker: Yup.boolean().nullable(),
+        irrigationFlood: Yup.boolean().nullable(),
+        bed: Yup.boolean().nullable(),
+        bedCount: Yup.number().typeError("Bed Count must be a number").required('Bed count is required'),
+        plantationMethod: Yup.string().required('Plantation method is required'),
+    })
 
     const toggleAccordion = (code: number) => {
         setExpandedItemCode(prev => (prev === code ? null : code));
     };
 
     const getListItems = (item: CropDetail) => {
+        const irrigationTypes = [];
+        if (item.irrigationDrip) irrigationTypes.push('Drip')
+        if (item.irrigationSprinker) irrigationTypes.push('Sprinkler')
+        if (item.irrigationFlood) irrigationTypes.push('Flood')
         let listItems = [
 
             { label: 'Company', value: item.seedCompanyName },
             { label: 'Variety', value: item.seedCompanyVarietyNumber },
-            // item.bed ? { label: 'Bed Count', value: item.bedCount } : null,
-            // { label: 'Nursery Raised', value: item.plantationNurseryRaised ? item.plantationNurseryRaisedDate : 'No' },
-            // { label: 'Irrigation', value: item.irrigationDrip ? 'Yes' : 'No' },
-            // { label: 'Irrigation - Sprinkler', value: item.irrigationSprinker ? 'Yes' : 'No' },
-            // { label: 'Irrigation - Flood', value: item.irrigationFlood ? 'Yes' : 'No' },
-            // { label: 'Stacking', value: item.stackingStatus ? item.stackingDate : 'No' },
-            // { label: 'Protections', value: item.protectionsRequired ? `${item.protectionsRequiredCount} :${item.protectionsDeployedCount}` : 'No' },
-            // // { label: 'Protections Required Count', value: item.protectionsRequiredCount },
-            // // { label: 'Protections Deployed Count', value: item.protectionsDeployedCount },
-            // { label: 'Cultivation', value: item.cultivationStatus ? `${item.cultivationExpectedDate} & ${item.cultivationActualDate}` : 'No' },
-            // { label: 'Cultivation Actual', value: item.cultivationActualDate || 'N/A' },
-
-
-            // { label: 'Nursery Date', value: item.plantationNurseryRaisedDate },
-
-            // { label: 'Bed', value: item.bed ? 'Yes' : 'No' },
-
-
-
-            // { label: 'Harvest Start Expected', value: item.harvestStartExpectedDate || 'N/A' },
-            // { label: 'Harvest Start Actual', value: item.harvestStartActualDate || 'N/A' },
-            // { label: 'Harvest Yield Expected', value: item.harvestYieldKilosExpected ?? 'N/A' },
-            // { label: 'Harvest Interval Count', value: item.harvestIntervalCountExpected },
-            // { label: 'Harvest End Expected', value: item.harvestEndExpectedDate || 'N/A' },
-            // { label: 'Harvest Done Count', value: item.harvestDoneCount },
-            // { label: 'Harvest Yield Collected', value: item.harvestYieldKilosCollected ?? 'N/A' },
-            // { label: 'Uprooting Status', value: item.uprootingStatus ? 'Done' : 'Pending' },
-            // { label: 'Uprooting Expected Date', value: item.uprootingExpectedDate || 'N/A' },
-            // { label: 'Uprooting Actual Date', value: item.uprootingActualDate || 'N/A' },
-
         ]
 
         if (item.bed) {
-            // listItems.splice(2, 0, { label: 'Bed Count', value: item.bedCount });
             listItems.push({ label: 'Bed Count', value: item.bedCount });
         }
         if (item.plantationNurseryRaised) {
             listItems.push({ label: 'Nursery Raised', value: item.plantationNurseryRaisedDate });
         }
-        const irrigationTypes = [];
-        if (item.irrigationDrip) irrigationTypes.push('Drip')
-        if (item.irrigationSprinker) irrigationTypes.push('Sprinkler')
-        if (item.irrigationFlood) irrigationTypes.push('Flood')
         listItems.push({ label: 'Irrigation', value: irrigationTypes.join(', ') });
         if (item.stackingStatus) {
             listItems.push({ label: 'Stacking', value: item.stackingDate });
@@ -367,29 +246,19 @@ const CropList = ({ }) => {
             listItems.push({ label: 'Yield Interval', value: `Expected-${item.harvestIntervalCountExpected} | Actual-${item.harvestYieldKilosCollected}` });
             listItems.push({ label: 'Harvest End', value: `Expected-${item.harvestEndExpectedDate} | Actual-${item.harvestEndActualDate}` });
         }
-
         return listItems
     }
 
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen")}>
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>
                     <TouchableOpacity onPress={() => openEditModal(item)}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
-                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity>
                 </View>
             </View>
-
-            {/* Basic Info */}
-            {/* <Text style={styles.field}>
-                <Text style={styles.fieldLabel}>Crop Name: </Text>
-                <Text style={styles.fieldValue}>{item.cropName}</Text>
-            </Text> */}
 
             <Text style={styles.field}>
                 <Text style={styles.fieldLabel}>Land Name: </Text>
@@ -405,7 +274,7 @@ const CropList = ({ }) => {
                 <Text style={styles.fieldValue}>{item.cropType}</Text>
             </Text>
             <Text style={styles.field}>
-                <Text style={styles.fieldLabel}>Plantation Method </Text>
+                <Text style={styles.fieldLabel}>Plantation Method: </Text>
                 <Text style={styles.fieldValue}>{item.plantationMethod}</Text>
             </Text>
 
@@ -429,8 +298,7 @@ const CropList = ({ }) => {
                     ))}
                 </View>
             )}
-        </View>
-
+        </TouchableOpacity>
     );
 
     return (
@@ -439,7 +307,7 @@ const CropList = ({ }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Lands</Text>
+                <Text style={styles.headerTitle}>Crops</Text>
             </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
@@ -459,91 +327,84 @@ const CropList = ({ }) => {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editLand ? 'Edit CropList' : 'Add CropList'}</Text>
-                            <Formik
-                                initialValues={{
-                                    plotName: editLand?.plotName || '',
-                                    plotLength: editLand?.plotLength?.toString() || '',
-                                    plotWidth: editLand?.plotWidth?.toString() || '',
-                                    isRiser: editLand?.isRiser || false,
-                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
-                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilId: editLand?.soilId || '',
-                                    // riserSide: editLand?.riserCalMethod || riserSides[0].value,
-                                    code: editLand?.code || '',
-                                    plantationNurseryRaisedDate: editLand?.plantationNurseryRaisedDate || '',
-                                }}
-                                validationSchema={validationSchema}
-                                onSubmit={(values, { resetForm }) => {
-                                    if (!editLand) {
-                                        handleAddPlot(values);
-                                    }
-                                    else {
-                                        handleUpdatePlot(values);
-                                    }
-                                    setModalVisible(false);
-                                    resetForm();
-                                }}
-                            >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                    <>
+                        <Text style={styles.modalTitle}>{editLand ? 'Edit CropList' : 'Add CropList'}</Text>
+                        <Formik
+                            initialValues={{
+                                projectId: project?.projectId || '',
+                                plotId: editLand?.plotId || '',
+                                cropId: editLand?.cropId || '',
+                                cropType: editLand?.cropType || '',
+                                cropCultivationType: editLand?.cropCultivationType || '',
+                                plantationNurseryRaised: editLand?.plantationNurseryRaised || false,
+                                plantationNurseryRaisedDate: editLand?.plantationNurseryRaisedDate || '',
+                                seedCompanyName: editLand?.seedCompanyName || '',
+                                seedCompanyVarietyNumber: editLand?.seedCompanyVarietyNumber || '',
+                                irrigationDrip: editLand?.irrigationDrip || false,
+                                irrigationSprinker: editLand?.irrigationSprinker || false,
+                                irrigationFlood: editLand?.irrigationFlood || false,
+                                bed: editLand?.bed || false,
+                                bedCount: editLand?.bedCount || '',
+                                plantationMethod: editLand?.plantationMethod || '',
+                            }}
+                            validationSchema={validationSchema}
+                            onSubmit={(values, { resetForm }) => {
+                                if (!editLand) {
+                                    handleAddPlot(values);
+                                }
+                                else {
+                                    handleUpdatePlot(values);
+                                }
+                                setModalVisible(false);
+                                resetForm();
+                            }}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                                <>
+                                    <ScrollView contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }} showsVerticalScrollIndicator={false}>
                                         {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Land</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={landOptions.map(land => ({ label: land.plotName, value: land.code }))}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.plotName}
-                                                onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                                placeholder="Select Electric Phase"
-                                            />
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Crop</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={cropOptions.map(crop => ({ label: crop.cropName, value: crop.code }))}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.plotName}
-                                                onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                                placeholder="Select Electric Phase"
-                                            />
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Crop Type</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={cropTypeDropdown}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.plotName}
-                                                onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                                placeholder="Select Electric Phase"
-                                            />
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Cultivation Type</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={CropCultivaionTypeOptions}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.plotName}
-                                                onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                                placeholder="Select Electric Phase"
-                                            />
-                                        </View>
+                                        <AppDropdown
+                                            required={true}
+                                            data={landOptions.map(land => ({ label: land.plotName, value: land.code }))}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.plotId}
+                                            error={touched.plotId && errors.plotId ? errors.plotId : ''}
+                                            onChange={item => setFieldValue('plotId', item.value)}
+                                            placeholder="Plot" />
+                                        <AppDropdown
+                                            required={true}
+                                            data={cropOptions.map(crop => ({ label: crop.cropName, value: crop.code }))}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.cropId}
+                                            error={touched.cropId && errors.cropId ? errors.cropId : ''}
+                                            onChange={item => setFieldValue('cropId', item.value)}
+                                            placeholder="Crop" />
+                                        <AppDropdown
+                                            required={true}
+                                            data={cropTypeDropdown}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.cropType}
+                                            error={touched.cropType && errors.cropType ? errors.cropType : ''}
+                                            onChange={item => setFieldValue('cropType', item.value)}
+                                            placeholder="Crop Type" />
+                                        <AppDropdown
+                                            required={true}
+                                            data={CropCultivaionTypeOptions}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.cropCultivationType}
+                                            error={touched.cropCultivationType && errors.cropCultivationType ? errors.cropCultivationType : ''}
+                                            onChange={item => setFieldValue('cropCultivationType', item.value)}
+                                            placeholder="Cultivation Type" />
                                         <View style={styles.checkboxRow}>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                onPress={() => setFieldValue('isRiser', !values.plantationNurseryRaised)}
                                             >
                                                 <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                     size={22}
                                                     color="#388e3c"
                                                 />
@@ -557,33 +418,34 @@ const CropList = ({ }) => {
                                                 name="plantationNurseryRaisedDate"
                                                 error={touched.plantationNurseryRaisedDate && errors.plantationNurseryRaisedDate ? errors.plantationNurseryRaisedDate : ''}
                                                 touched={touched.plantationNurseryRaisedDate}
-                                                placeholder="Select Nursery Raised Date"
+                                                placeholder="Nursery Raised Date"
                                                 required={true}
                                             />
                                         </View>
-                                     <AppTextInput
+                                        <AppTextInput
                                             placeholder="Planting Crop Company"
                                             maxLength={45}
-                                            onBlur={handleBlur('plotName')}
-                                            value={values.plotName}
+                                            onBlur={handleBlur('seedCompanyName')}
+                                            value={values.seedCompanyName}
                                             required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
+                                            error={touched.seedCompanyName && errors.seedCompanyName ? errors.seedCompanyName : ''}
+                                            onChangeText={handleChange('seedCompanyName')} />
                                         <AppTextInput
                                             placeholder="Planting Crop Variety"
-                                            onBlur={handleBlur('plotLength')}
+                                            onBlur={handleBlur('seedCompanyVarietyNumber')}
                                             keyboardType="decimal-pad"
-                                            value={values.plotLength}
+                                            value={values.seedCompanyVarietyNumber}
                                             required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
+                                            error={touched.seedCompanyVarietyNumber && errors.seedCompanyVarietyNumber ? errors.seedCompanyVarietyNumber : ''}
+                                            onChangeText={handleChange('seedCompanyVarietyNumber')} />
                                         <View style={styles.checkboxRow}>
+                                            <Text style={styles.checkboxLabel}>Irrigation:</Text>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                onPress={() => setFieldValue('irrigationDrip', !values.irrigationDrip)}
                                             >
                                                 <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    name={values.irrigationDrip ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                     size={22}
                                                     color="#388e3c"
                                                 />
@@ -591,10 +453,10 @@ const CropList = ({ }) => {
                                             <Text style={styles.checkboxLabel}>Drip</Text>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                onPress={() => setFieldValue('irrigationSprinker', !values.irrigationSprinker)}
                                             >
                                                 <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    name={values.irrigationSprinker ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                     size={22}
                                                     color="#388e3c"
                                                 />
@@ -602,64 +464,52 @@ const CropList = ({ }) => {
                                             <Text style={styles.checkboxLabel}>Sprinkler</Text>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                onPress={() => setFieldValue('irrigationFlood', !values.irrigationFlood)}
                                             >
                                                 <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    name={values.irrigationFlood ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                     size={22}
                                                     color="#388e3c"
                                                 />
                                             </TouchableOpacity>
                                             <Text style={styles.checkboxLabel}>Flood</Text>
                                         </View>
-                                             <View style={styles.checkboxRow}>
+                                        <View style={styles.checkboxRow}>
                                             <TouchableOpacity
                                                 style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                onPress={() => setFieldValue('bed', !values.bed)}
                                             >
                                                 <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                    name={values.bed ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                     size={22}
                                                     color="#388e3c"
                                                 />
                                             </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Nursery Raised</Text>
+                                            <Text style={styles.checkboxLabel}>Bed</Text>
                                         </View>
-
-                        
-                                        <AppTextInput
-                                            placeholder="Bed Count"
-                                            onBlur={handleBlur('plotRiserDistance')}
+                                        <AppDropdown
                                             required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={plantationOptions}
-                                                labelField="soilColor"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Plantation"
-                                            />
-                                        </View>
-                                        <View style={styles.modalActions}>
-                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                                <Text style={styles.saveBtnText}>Save</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                                setModalVisible(false);
-                                            }}>
-                                                <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </>
-                                )}
-                            </Formik>
-                        </ScrollView>
+                                            data={plantationOptions}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.plantationMethod}
+                                            error={touched.plantationMethod && errors.plantationMethod ? errors.plantationMethod : ''}
+                                            onChange={item => setFieldValue('plantationMethod', item.value)}
+                                            placeholder="Plantation" />
+                                    </ScrollView>
+                                    <View style={styles.modalActions}>
+                                        <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                            <Text style={styles.saveBtnText}>Save</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                            setModalVisible(false);
+                                        }}>
+                                            <Text style={styles.cancelBtnText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </Formik>
                     </View>
                 </View>
             </Modal>
@@ -757,7 +607,7 @@ const styles = StyleSheet.create({
         paddingVertical: 24,
         paddingHorizontal: 18,
         width: Dimensions.get('window').width * 0.95,
-        maxHeight: Dimensions.get('window').height * 0.92,
+        maxHeight: Dimensions.get('window').height * 0.85,
         elevation: 6,
         alignSelf: 'center',
         justifyContent: 'center',
@@ -781,13 +631,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
+        marginRight: 10
     },
     checkbox: {
-        marginRight: 8,
+        marginRight: 4,
     },
     checkboxLabel: {
         fontSize: 16,
         color: '#333',
+        marginRight: 12
     },
     dropdownRow: {
         flexDirection: 'row',

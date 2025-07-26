@@ -20,7 +20,7 @@ const riserSides = [
 ];
 
 type Soil = {
-    code: 1,
+    code: number,
     soilColor: string,
     soilDesc: string
 }
@@ -30,7 +30,7 @@ const soilColor = [
     { label: 'Black', value: 2 },
 ];
 
-type Plot = {
+export type Plot = {
     code: number;
     projectId: number;
     projectName: string;
@@ -147,6 +147,7 @@ const Land = ({ }) => {
             try {
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
+                console.log("res:", response.result);
             } catch (error) {
                 console.error("Error fetching soil data:", error);
             }
@@ -172,9 +173,26 @@ const Land = ({ }) => {
         plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
         plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
         isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
+        plotRiserDistance: Yup.number()
+            .typeError('Riser Distance must be a number')
+            .when('isRiser', {
+                is: true,
+                then: schema => schema.required('Riser Distance is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
+        plotBedActualCount: Yup.number()
+            .typeError('Bed Count must be a number')
+            .when('isRiser', {
+                is: true,
+                then: schema => schema.required('Bed Count is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
+        riserSide: Yup.string()
+            .when('isRiser', {
+                is: true,
+                then: schema => schema.required('Riser Side is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
         soilId: Yup.string().required('soil type is required'),
     });
 
@@ -243,7 +261,7 @@ const Land = ({ }) => {
                                     plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
                                     plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
                                     soilId: editLand?.soilId || '',
-                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
+                                    riserSide: editLand?.riserCalMethod || null,
                                     code: editLand?.code || '',
                                 }}
                                 validationSchema={validationSchema}
@@ -258,100 +276,109 @@ const Land = ({ }) => {
                                     resetForm();
                                 }}
                             >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                    <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            onBlur={handleBlur('plotName')}
-                                            value={values.plotName}
-                                            required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
-                                        <AppTextInput
-                                            placeholder="Length"
-                                            onBlur={handleBlur('plotLength')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotLength}
-                                            required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
-                                        <AppTextInput
-                                            placeholder="Width"
-                                            onBlur={handleBlur('plotWidth')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotWidth}
-                                            required={true}
-                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
-                                            onChangeText={handleChange('plotWidth')} />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Riser</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={riserSides}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.riserSide}
-                                                onChange={item => setFieldValue('riserSide', item.value)}
-                                                placeholder="Select Riser Side"
-                                            />
-                                        </View>
-                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <AppTextInput
-                                            placeholder="Riser Distance"
-                                            onBlur={handleBlur('plotRiserDistance')}
-                                            required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <AppTextInput
-                                            placeholder="Bed Actual Count"
-                                            onBlur={handleBlur('plotBedActualCount')}
-                                            required={true}
-                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
+                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => {
+                                    // Clear riser fields if isRiser is unchecked
+                                    React.useEffect(() => {
+                                        if (!values.isRiser) {
+                                            setFieldValue('riserSide', '', false);
+                                            setFieldValue('plotRiserDistance', '', false);
+                                            setFieldValue('plotBedActualCount', '', false);
+                                        }
+                                    }, [values.isRiser]);
+
+                                    return (
+                                        <>
+                                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+                                            <AppTextInput
+                                                placeholder="Plot Name"
+                                                maxLength={45}
+                                                onBlur={handleBlur('plotName')}
+                                                value={values.plotName}
+                                                required={true}
+                                                error={touched.plotName && errors.plotName ? errors.plotName : ''}
+                                                onChangeText={handleChange('plotName')} />
+                                            <AppTextInput
+                                                placeholder="Length"
+                                                onBlur={handleBlur('plotLength')}
+                                                keyboardType="decimal-pad"
+                                                value={values.plotLength}
+                                                required={true}
+                                                error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
+                                                onChangeText={handleChange('plotLength')} />
+                                            <AppTextInput
+                                                placeholder="Width"
+                                                onBlur={handleBlur('plotWidth')}
+                                                keyboardType="decimal-pad"
+                                                value={values.plotWidth}
+                                                required={true}
+                                                error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
+                                                onChangeText={handleChange('plotWidth')} />
+                                            <View style={styles.checkboxRow}>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('isRiser', !values.isRiser)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Riser</Text>
+                                            </View>
+                                            {values.isRiser && (
+                                                <>
+                                                    <AppDropdown
+                                                        required={true}
+                                                        data={riserSides}
+                                                        labelField="label"
+                                                        valueField="value"
+                                                        value={values.riserSide}
+                                                        error={touched.riserSide && errors.riserSide ? errors.riserSide : ''}
+                                                        onChange={item => setFieldValue('riserSide', item.value)}
+                                                        placeholder="Riser Side"
+                                                    />
+                                                    <AppTextInput
+                                                        placeholder="Riser Distance"
+                                                        onBlur={handleBlur('plotRiserDistance')}
+                                                        required={true}
+                                                        error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
+                                                        keyboardType="decimal-pad"
+                                                        value={values.plotRiserDistance}
+                                                        onChangeText={handleChange('plotRiserDistance')} />
+                                                    <AppTextInput
+                                                        placeholder="Bed Actual Count"
+                                                        onBlur={handleBlur('plotBedActualCount')}
+                                                        required={true}
+                                                        error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
+                                                        keyboardType="decimal-pad"
+                                                        value={values.plotBedActualCount}
+                                                        onChangeText={handleChange('plotBedActualCount')} />
+                                                </>
+                                            )}
+                                            <AppDropdown
+                                                required={true}
                                                 data={soilDataOptions}
-                                                labelField="soilColor"
+                                                labelField="soil"
                                                 valueField="code"
                                                 value={values.soilId}
+                                                error={touched.soilId && errors.soilId ? errors.soilId : ''}
                                                 onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Select Soil Color"
+                                                placeholder="Soil"
                                             />
-                                        </View>
-                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
-                                            <Text style={styles.error}>{errors.soilId}</Text>
-                                        )}
-                                        <View style={styles.modalActions}>
-                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                                <Text style={styles.saveBtnText}>Save</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                                setModalVisible(false);
-                                            }}>
-                                                <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </>
-                                )}
+                                            <View style={styles.modalActions}>
+                                                <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                                    <Text style={styles.saveBtnText}>Save</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                                    setModalVisible(false);
+                                                }}>
+                                                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </>
+                                    );
+                                }}
                             </Formik>
                         </ScrollView>
                     </View>

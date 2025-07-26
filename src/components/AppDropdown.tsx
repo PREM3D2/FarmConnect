@@ -45,7 +45,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
   const labelStyle = {
     top: animatedLabel.interpolate({
       inputRange: [0, 1],
-      outputRange: [16, -8], // 16px when not focused, -8px when focused (aligns with top border)
+      outputRange: [16, -10], // 16px when not focused, -8px when focused (aligns with top border)
     }),
     left: 14,
     fontSize: animatedLabel.interpolate({
@@ -79,6 +79,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({
         }}
         placeholder={''}
         disable={disabled}
+        selectedTextStyle={{ fontSize: 16 }} 
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 10,
     height: 48,
+    // paddingTop: 16,
     backgroundColor: '#fff',
     justifyContent: 'center',
   },

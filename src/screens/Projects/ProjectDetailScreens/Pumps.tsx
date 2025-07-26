@@ -9,13 +9,14 @@ import PumpsService from '../../../services/PumpsService';
 import AppTextInput from '../../../components/AppTextInput';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Project } from '../ProjectListScreen';
+import AppDropdown from '../../../components/AppDropdown';
 
 
 const phaseDropdown = [
     { label: 'SinglePhase', value: 'single' },
     { label: 'ThreePhase', value: 'three' },
 ];
-//need to update soilColor dropdown from API
+
 const pumpWaterOutputDropdown = [
     { label: 'LPM', value: 'LPM' },
     { label: 'LPH', value: 'LPH' },
@@ -49,7 +50,6 @@ const Pumps = () => {
         setEditPumps(null);
         setModalVisible(true);
     };
-
 
     const openEditModal = (Pumps: any) => {
         setEditPumps(Pumps);
@@ -227,7 +227,7 @@ const Pumps = () => {
                             >
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
-                                        <Text>{JSON.stringify(errors, null, 2)} </Text>
+                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
                                         <AppTextInput
                                             placeholder="Pump Name"
                                             maxLength={45}
@@ -244,18 +244,16 @@ const Pumps = () => {
                                             required={true}
                                             error={touched.pumpHorsePower && errors.pumpHorsePower ? errors.pumpHorsePower : ''}
                                             onChangeText={handleChange('pumpHorsePower')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Phase</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={phaseDropdown}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.pumpElectricPhase}
-                                                onChange={item => setFieldValue('pumpElectricPhase', item.value)}
-                                                placeholder="Select Electric Phase"
-                                            />
-                                        </View>
+                                        <AppDropdown
+                                            required={true}
+                                            data={phaseDropdown}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.pumpElectricPhase}
+                                            error={touched.pumpElectricPhase && errors.pumpElectricPhase ? errors.pumpElectricPhase : ''}
+                                            onChange={item => setFieldValue('pumpElectricPhase', item.value)}
+                                            placeholder="Electric Phase"
+                                        />
                                         <AppTextInput
                                             placeholder="Water Output"
                                             onBlur={handleBlur('pumpWaterOutput')}
@@ -264,20 +262,16 @@ const Pumps = () => {
                                             required={true}
                                             error={touched.pumpWaterOutput && errors.pumpWaterOutput ? errors.pumpWaterOutput : ''}
                                             onChangeText={handleChange('pumpWaterOutput')} />
-
-                                        <View style={styles.dropdownRow}>
-                                            <Text style={styles.dropdownLabel}>Output</Text>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={pumpWaterOutputDropdown}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.pumpWaterOutputUnit}
-                                                onChange={item => setFieldValue('pumpWaterOutputUnit', item.value)}
-                                                placeholder="Select Water Output Unit"
-                                            />
-                                        </View>
-                                        {touched.pumpWaterOutputUnit && errors.pumpWaterOutputUnit && <Text style={styles.error}>{errors.pumpWaterOutputUnit}</Text>}
+                                         <AppDropdown
+                                            required={true}
+                                            data={pumpWaterOutputDropdown}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={values.pumpWaterOutputUnit}
+                                            error={touched.pumpWaterOutputUnit && errors.pumpWaterOutputUnit ? errors.pumpWaterOutputUnit : ''}
+                                            onChange={item => setFieldValue('pumpWaterOutputUnit', item.value)}
+                                            placeholder="Water Output Unit"
+                                        />
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>

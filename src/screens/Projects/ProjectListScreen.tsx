@@ -49,7 +49,7 @@ const ProjectListScreen = () => {
     <TouchableOpacity style={styles.card} onPress={() => handleClickofItem(item)}>
       <View style={{ flex: 1 }}>
         <Text style={styles.bold}>{item.projectName} ({item.projectShortName})</Text>
-        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} SFT</Text>
+        <Text style={{color:'green',  fontWeight: 'bold',}}>{item.projectLandArea} Acres</Text>
         <Text style={{color:'green',  fontWeight: 'bold',}}>{item.soilName}</Text>
         <Text style={styles.projectDescription}>
           {item.projectAddress.length > 60 ? `${item.projectAddress.substring(0, 60)}...` : item.projectAddress}
