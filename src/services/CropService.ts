@@ -41,7 +41,7 @@ const CropService = {
     }
   },
 
-  getcropDetailbycropid: async (projectId:number ,cropId: number) => {
+  getcropDetailbycropid: async (projectId: number, cropId: number) => {
     try {
       const token = getJwtToken();
       const response = await axios.get(`${API_BASE_URL}/plotcrop/edit?projectCode=${projectId}&plotCropCode=${cropId}`,
@@ -93,7 +93,7 @@ const CropService = {
   addcrop: async (cropData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.post(`${API_BASE_URL}/crop`, cropData,
+      const response = await axios.post(`${API_BASE_URL}/plotcrop`, cropData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -104,6 +104,23 @@ const CropService = {
       throw error;
     }
   },
+
+
+  addCropProtectionDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.post(`${API_BASE_URL}/plotcrop/protection-expected`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 
   updatecrop: async (projectData: any) => {
     try {
@@ -121,14 +138,110 @@ const CropService = {
     }
   },
 
-  deletecrop: async (cropId:any) => {
-   try {
+  updatecropNurseryDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.put(`${API_BASE_URL}/plotcrop/nursery-status`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updatecropStackingDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.put(`${API_BASE_URL}/plotcrop/stacking-status`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateProtectionActualDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.put(`${API_BASE_URL}/plotcrop/protection-actual`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateCultivationExpectedDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.put(`${API_BASE_URL}/plotcrop/cultivation-expected`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateCultivationActualDate: async (requestBody: any) => {
+    try {
+      const token = getJwtToken();
+      const response = await axios.put(`${API_BASE_URL}/plotcrop/cultivation-actual`, requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+
+
+  deletecrop: async (cropId: any) => {
+    try {
       const bearerToken = getJwtToken();
       const response = await axios.delete(`${API_BASE_URL}/crop`, {
         headers: {
           'Authorization': `Bearer ${bearerToken}`,
         },
-        data: {"code":cropId}, // Pass the request body within the 'data' property of the config object
+        data: { "code": cropId }, // Pass the request body within the 'data' property of the config object
+      });
+    } catch (error) {
+      console.error('Error during delete request:', error);
+    }
+  },
+
+  deleteCropProtectionExpected: async (protectionId: any) => {
+    try {
+      const bearerToken = getJwtToken();
+      const response = await axios.delete(`${API_BASE_URL}/plotcrop/protection-expected`, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+        },
+        data: { "code": protectionId }, // Pass the request body within the 'data' property of the config object
       });
     } catch (error) {
       console.error('Error during delete request:', error);

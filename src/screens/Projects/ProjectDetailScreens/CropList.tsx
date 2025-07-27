@@ -13,6 +13,7 @@ import CropService from '../../../services/CropService';
 import DateControl from '../../../components/DateControl';
 import { Plot } from './Land';
 import { ActivityIndicator } from 'react-native-paper';
+import { showToast } from '../../../components/ShowToast';
 
 
 const CropCultivaionTypeOptions = [
@@ -112,48 +113,80 @@ const CropList = ({ }) => {
         setModalVisible(true);
     };
 
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-        };
-        const addPlot = async () => {
-            try {
-                await LandService.addPlot(plotData);
-            } catch (error) {
+    const handleAddCrop = async (values: any) => {
+        const cropData = {
+            projectId: values.projectId,
+            plotId: values.plotId,
+            cropId: values.cropId,
+            cropType: values.cropType,
+            cropCultivationType: values.cropCultivationType,
+            plantationNurseryRaised: values.plantationNurseryRaised,
+            plantationNurseryRaisedDate: values.plantationNurseryRaisedDate,
+            seedCompanyName: values.seedCompanyName,
+            seedCompanyVarietyNumber: values.seedCompanyVarietyNumber,
+            irrigationDrip: values.irrigationDrip,
+            irrigationSprinker: values.irrigationSprinker,
+            irrigationFlood: values.irrigationFlood,
+            bed: values.bed,
+            bedCount: values.bedCount,
+            plantationMethod: values.plantationMethod,
+            seedCompanyLogoImage: null,
+            seedCompanyLogoImageAvailable: false,
+        }
+        const addCrop = async () => {
+            try {           
+                const response = await CropService.addcrop(cropData);            
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Add Crop", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Add Crop", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Add Crop", error.errorMessage);
             }
         };
-        addPlot();
+        addCrop();
         setReloadList(!reloadList);
     }
 
     const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-            code: values.code,
-        };
-        const updatePlot = async () => {
+        const cropData = {
+            code : values.code,
+            projectId: values.projectId,
+            plotId: values.plotId,
+            cropId: values.cropId,
+            cropType: values.cropType,
+            cropCultivationType: values.cropCultivationType,
+            plantationNurseryRaised: values.plantationNurseryRaised,
+            plantationNurseryRaisedDate: values.plantationNurseryRaisedDate,
+            seedCompanyName: values.seedCompanyName,
+            seedCompanyVarietyNumber: values.seedCompanyVarietyNumber,
+            irrigationDrip: values.irrigationDrip,
+            irrigationSprinker: values.irrigationSprinker,
+            irrigationFlood: values.irrigationFlood,
+            bed: values.bed,
+            bedCount: values.bedCount,
+            plantationMethod: values.plantationMethod,
+            seedCompanyLogoImage: null,
+            seedCompanyLogoImageAvailable: false,
+        }
+        const updateCrop = async () => {
             try {
-                await LandService.updatePlot(plotData);
-            } catch (error) {
+                const response = await CropService.updatecrop(cropData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Update Crop", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Update Crop", response.result.errorMessage);
+                }
+            } catch (error:any) {
+                 showToast('error', "Update Crop", error.errorMessage);
             }
         };
-        updatePlot();
+        updateCrop();
         setReloadList(!reloadList);
     }
 
@@ -193,13 +226,11 @@ const CropList = ({ }) => {
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
-        // projectId: Yup.number().required('Project ID is required'),
         plotId: Yup.string().required('Land Name is required'),
         cropId: Yup.string().required('Crop Name is required'),
         cropType: Yup.string().oneOf(['main', 'protection', 'border']).required('Crop type is required'),
         cropCultivationType: Yup.string().oneOf(['sowing', 'plantation']).required('Cultivation type is required'),
         plantationNurseryRaised: Yup.boolean().nullable(),
-        plantationNurseryRaisedDate: Yup.string().required('Nursery Raised Date is required'),
         seedCompanyName: Yup.string().max(100).required('Plantation company name is required'),
         seedCompanyVarietyNumber: Yup.string().max(50).required('Plantation Variety number is required'),
         irrigationDrip: Yup.boolean().nullable(),
@@ -208,6 +239,12 @@ const CropList = ({ }) => {
         bed: Yup.boolean().nullable(),
         bedCount: Yup.number().typeError("Bed Count must be a number").required('Bed count is required'),
         plantationMethod: Yup.string().required('Plantation method is required'),
+        plantationNurseryRaisedDate: Yup.string()
+            .when('plantationNurseryRaised', {
+                is: true,
+                then: schema => schema.required('Nursery Date is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
     })
 
     const toggleAccordion = (code: number) => {
@@ -253,7 +290,7 @@ const CropList = ({ }) => {
     }
 
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen",{ project: project,code: item.code})}>
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen", { project: project, code: item.code })}>
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>
@@ -353,11 +390,12 @@ const CropList = ({ }) => {
                                 bed: editLand?.bed || false,
                                 bedCount: editLand?.bedCount || '',
                                 plantationMethod: editLand?.plantationMethod || '',
+                                code: editLand?.cropId
                             }}
                             validationSchema={validationSchema}
                             onSubmit={(values, { resetForm }) => {
                                 if (!editLand) {
-                                    handleAddPlot(values);
+                                    handleAddCrop(values);
                                 }
                                 else {
                                     handleUpdatePlot(values);
@@ -366,157 +404,177 @@ const CropList = ({ }) => {
                                 resetForm();
                             }}
                         >
-                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                <>
-                                    <ScrollView contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }} showsVerticalScrollIndicator={false}>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppDropdown
-                                            required={true}
-                                            data={landOptions.map(land => ({ label: land.plotName, value: land.code }))}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.plotId}
-                                            error={touched.plotId && errors.plotId ? errors.plotId : ''}
-                                            onChange={item => setFieldValue('plotId', item.value)}
-                                            placeholder="Plot" />
-                                        <AppDropdown
-                                            required={true}
-                                            data={cropOptions.map(crop => ({ label: crop.cropName, value: crop.code }))}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.cropId}
-                                            error={touched.cropId && errors.cropId ? errors.cropId : ''}
-                                            onChange={item => setFieldValue('cropId', item.value)}
-                                            placeholder="Crop" />
-                                        <AppDropdown
-                                            required={true}
-                                            data={cropTypeDropdown}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.cropType}
-                                            error={touched.cropType && errors.cropType ? errors.cropType : ''}
-                                            onChange={item => setFieldValue('cropType', item.value)}
-                                            placeholder="Crop Type" />
-                                        <AppDropdown
-                                            required={true}
-                                            data={CropCultivaionTypeOptions}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.cropCultivationType}
-                                            error={touched.cropCultivationType && errors.cropCultivationType ? errors.cropCultivationType : ''}
-                                            onChange={item => setFieldValue('cropCultivationType', item.value)}
-                                            placeholder="Cultivation Type" />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('plantationNurseryRaised', !values.plantationNurseryRaised)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Nursery Raised</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <DateControl
-                                                value={values.plantationNurseryRaisedDate}
-                                                setFieldValue={setFieldValue}
-                                                name="plantationNurseryRaisedDate"
-                                                error={touched.plantationNurseryRaisedDate && errors.plantationNurseryRaisedDate ? errors.plantationNurseryRaisedDate : ''}
-                                                touched={touched.plantationNurseryRaisedDate}
-                                                placeholder="Nursery Raised Date"
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => {
+                                React.useEffect(() => {
+                                    if (!values.plantationNurseryRaised) {
+                                        setFieldValue('plantationNurseryRaisedDate', '', false);
+                                    }
+                                }, [values.plantationNurseryRaised]);
+
+                                return (
+                                    <>
+                                        <ScrollView contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }} showsVerticalScrollIndicator={false}>
+                                            <Text>{JSON.stringify(errors, null, 2)} </Text>
+                                            <AppDropdown
                                                 required={true}
-                                            />
+                                                data={landOptions.map(land => ({ label: land.plotName, value: land.code }))}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.plotId}
+                                                error={touched.plotId && errors.plotId ? errors.plotId : ''}
+                                                onChange={item => setFieldValue('plotId', item.value)}
+                                                placeholder="Plot" />
+                                            <AppDropdown
+                                                required={true}
+                                                data={cropOptions.map(crop => ({ label: crop.cropName, value: crop.code }))}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.cropId}
+                                                error={touched.cropId && errors.cropId ? errors.cropId : ''}
+                                                onChange={item => setFieldValue('cropId', item.value)}
+                                                placeholder="Crop" />
+                                            <AppDropdown
+                                                required={true}
+                                                data={cropTypeDropdown}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.cropType}
+                                                error={touched.cropType && errors.cropType ? errors.cropType : ''}
+                                                onChange={item => setFieldValue('cropType', item.value)}
+                                                placeholder="Crop Type" />
+                                            <AppDropdown
+                                                required={true}
+                                                data={CropCultivaionTypeOptions}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.cropCultivationType}
+                                                error={touched.cropCultivationType && errors.cropCultivationType ? errors.cropCultivationType : ''}
+                                                onChange={item => setFieldValue('cropCultivationType', item.value)}
+                                                placeholder="Cultivation Type" />
+                                            <View style={styles.checkboxRow}>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('plantationNurseryRaised', !values.plantationNurseryRaised)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Nursery Raised</Text>
+                                            </View>
+
+                                            {values.plantationNurseryRaised &&
+                                                <View style={styles.dropdownRow}>
+                                                    <DateControl
+                                                        value={values.plantationNurseryRaisedDate}
+                                                        setFieldValue={setFieldValue}
+                                                        name="plantationNurseryRaisedDate"
+                                                        error={touched.plantationNurseryRaisedDate && errors.plantationNurseryRaisedDate ? errors.plantationNurseryRaisedDate : ''}
+                                                        touched={touched.plantationNurseryRaisedDate}
+                                                        placeholder="Nursery Raised Date"
+                                                        required={true}
+                                                    />
+                                                </View>
+                                            }
+                                            <AppTextInput
+                                                placeholder="Planting Crop Company"
+                                                maxLength={45}
+                                                onBlur={handleBlur('seedCompanyName')}
+                                                value={values.seedCompanyName}
+                                                required={true}
+                                                error={touched.seedCompanyName && errors.seedCompanyName ? errors.seedCompanyName : ''}
+                                                onChangeText={handleChange('seedCompanyName')} />
+                                            <AppTextInput
+                                                placeholder="Planting Crop Variety"
+                                                onBlur={handleBlur('seedCompanyVarietyNumber')}
+                                                keyboardType="decimal-pad"
+                                                value={values.seedCompanyVarietyNumber}
+                                                required={true}
+                                                error={touched.seedCompanyVarietyNumber && errors.seedCompanyVarietyNumber ? errors.seedCompanyVarietyNumber : ''}
+                                                onChangeText={handleChange('seedCompanyVarietyNumber')} />
+                                            <View style={styles.checkboxRow}>
+                                                <Text style={styles.checkboxLabel}>Irrigation:</Text>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('irrigationDrip', !values.irrigationDrip)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.irrigationDrip ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Drip</Text>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('irrigationSprinker', !values.irrigationSprinker)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.irrigationSprinker ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Sprinkler</Text>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('irrigationFlood', !values.irrigationFlood)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.irrigationFlood ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Flood</Text>
+                                            </View>
+
+                                            <View style={styles.checkboxRow}>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('bed', !values.bed)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.bed ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Bed</Text>
+                                            </View>
+                                            <AppTextInput
+                                                placeholder="Bed Count"
+                                                maxLength={45}
+                                                onBlur={handleBlur('bedCount')}
+                                                value={values.bedCount}
+                                                required={true}
+                                                error={touched.bedCount && errors.bedCount ? errors.bedCount : ''}
+                                                onChangeText={handleChange('bedCount')} />
+                                            <AppDropdown
+                                                required={true}
+                                                data={plantationOptions}
+                                                labelField="label"
+                                                valueField="value"
+                                                value={values.plantationMethod}
+                                                error={touched.plantationMethod && errors.plantationMethod ? errors.plantationMethod : ''}
+                                                onChange={item => setFieldValue('plantationMethod', item.value)}
+                                                placeholder="Plantation" />
+                                        </ScrollView>
+                                        <View style={styles.modalActions}>
+                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                                <Text style={styles.saveBtnText}>Save</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                                setModalVisible(false);
+                                            }}>
+                                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                            </TouchableOpacity>
                                         </View>
-                                        <AppTextInput
-                                            placeholder="Planting Crop Company"
-                                            maxLength={45}
-                                            onBlur={handleBlur('seedCompanyName')}
-                                            value={values.seedCompanyName}
-                                            required={true}
-                                            error={touched.seedCompanyName && errors.seedCompanyName ? errors.seedCompanyName : ''}
-                                            onChangeText={handleChange('seedCompanyName')} />
-                                        <AppTextInput
-                                            placeholder="Planting Crop Variety"
-                                            onBlur={handleBlur('seedCompanyVarietyNumber')}
-                                            keyboardType="decimal-pad"
-                                            value={values.seedCompanyVarietyNumber}
-                                            required={true}
-                                            error={touched.seedCompanyVarietyNumber && errors.seedCompanyVarietyNumber ? errors.seedCompanyVarietyNumber : ''}
-                                            onChangeText={handleChange('seedCompanyVarietyNumber')} />
-                                        <View style={styles.checkboxRow}>
-                                            <Text style={styles.checkboxLabel}>Irrigation:</Text>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('irrigationDrip', !values.irrigationDrip)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.irrigationDrip ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Drip</Text>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('irrigationSprinker', !values.irrigationSprinker)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.irrigationSprinker ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Sprinkler</Text>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('irrigationFlood', !values.irrigationFlood)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.irrigationFlood ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Flood</Text>
-                                        </View>
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('bed', !values.bed)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.bed ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Bed</Text>
-                                        </View>
-                                        <AppDropdown
-                                            required={true}
-                                            data={plantationOptions}
-                                            labelField="label"
-                                            valueField="value"
-                                            value={values.plantationMethod}
-                                            error={touched.plantationMethod && errors.plantationMethod ? errors.plantationMethod : ''}
-                                            onChange={item => setFieldValue('plantationMethod', item.value)}
-                                            placeholder="Plantation" />
-                                    </ScrollView>
-                                    <View style={styles.modalActions}>
-                                        <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                            <Text style={styles.saveBtnText}>Save</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                            setModalVisible(false);
-                                        }}>
-                                            <Text style={styles.cancelBtnText}>Cancel</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </>
-                            )}
+                                    </>
+                                )
+                            }}
                         </Formik>
                     </View>
                 </View>

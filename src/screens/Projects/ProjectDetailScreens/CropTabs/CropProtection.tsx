@@ -8,6 +8,10 @@ import { Formik } from 'formik';
 import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
+import CropService from '../../../../services/CropService';
+import { AppFunctions } from '../../../../Helpers/AppFunctions';
+import DateControl from '../../../../components/DateControl';
+import { showToast } from '../../../../components/ShowToast';
 
 
 const riserSides = [
@@ -43,40 +47,61 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const CropHome = (props: any) => {
+type CropProtectionInfo = {
+    code: number;
+    plotCropId: number;
+    protectionName: string;
+    protectionDeployExpectedDate: string; // Format: 'YYYY-MM-DD'
+    protectionDeployActualDate: string;   // Format: 'YYYY-MM-DD'
+    protectionDeployActualDateNotes: string;
+};
+
+const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
-    const project = props.ProjectInfo
-    const [editLand, setEditLand] = useState<Plot | null>(null);
+    const [cropDetail, setCropDetail] = useState<any>();
+    const [editCropProtection, setEditCropProtection] = useState<any>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
     const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
+    const [isChangeStatus, setIsChangeStatus] = useState(false);
+
 
     const openAddModal = () => {
-        setEditLand(null);
+        setEditCropProtection(null);
         setModalVisible(true);
+        setIsChangeStatus(false);
     };
 
 
     const openEditModal = (land: any) => {
-        setEditLand(land);
+        setEditCropProtection(land);
         setModalVisible(true);
+        setIsChangeStatus(false);
     };
 
-    const handleDelete = (plot: Plot) => {
+    const openChangeStatusModal = (land: any) => {
+        setEditCropProtection(land);
+        setModalVisible(true);
+        setIsChangeStatus(true);
+    };
+
+    const handleDelete = (protection: CropProtectionInfo) => {
         const deletePlot = async () => {
             try {
-                const response = await LandService.deletePlot(plot.code);
+                const response = await CropService.deleteCropProtectionExpected(protection.code);
+                showToast('success', 'Delete Protection', 'Protection has been Deleted Successfully');
             } catch (error) {
+                showToast('error', 'Delete Protection', 'Protection has been Deleted Successfully');
             }
         };
         deletePlot();
         setReloadList(!reloadList);
     };
 
-    const confirmDelete = (plot: Plot) => {
+    const confirmDelete = (protection: CropProtectionInfo) => {
         Alert.alert(
-            'Delete CropHome',
-            `Do you want to Delete the CropHome ${plot.plotName}?`,
+            'Delete CropProtection',
+            `Do you want to Delete the CropProtection ${protection.protectionName}?`,
             [
                 {
                     text: 'No',
@@ -84,7 +109,7 @@ const CropHome = (props: any) => {
                 },
                 {
                     text: 'Yes',
-                    onPress: () => handleDelete(plot),
+                    onPress: () => handleDelete(protection),
                     style: 'destructive',
                 },
             ],
@@ -92,22 +117,21 @@ const CropHome = (props: any) => {
         );
     };
 
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
+    const handleAddEditProtection = async (values: any) => {
+        const protectionData = {
+            code: values.code,
+            plotCropId: cropDetail?.cropId,
+            protectionName: values.protectionName,
+            protectionDeployExpectedDate: values.protectionDeployExpectedDate,
         };
+        console.log("protectionData", protectionData)
+
         const addPlot = async () => {
             try {
-                await LandService.addPlot(plotData);
+                const response = await CropService.addCropProtectionDate(protectionData);
+                console.log(response)
             } catch (error) {
+                console.log(error)
             }
         };
         addPlot();
@@ -115,22 +139,19 @@ const CropHome = (props: any) => {
     }
 
     const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
+        const protectionData = {
             code: values.code,
+            plotCropId: cropDetail?.cropId,
+            protectionDeployActualDate: values.protectionDeployActualDate,
+            protectionDeployActualDateNotes: values.protectionDeployActualDateNotes,
         };
         const updatePlot = async () => {
             try {
-                await LandService.updatePlot(plotData);
+               const response = await CropService.updateProtectionActualDate(protectionData);
+                console.log(response, "response")
+                showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
             } catch (error) {
+                showToast('error', 'Actual Protection Date', 'Error');
             }
         };
         updatePlot();
@@ -150,69 +171,84 @@ const CropHome = (props: any) => {
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
-        const fetchPlots = async () => {
-            if (typeof project?.projectId !== 'number') return;
+        const fetchCropDetail = async () => {
             try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setPlots(response.result || []);
+                const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
+                setCropDetail(response.result || []);
+                console.log(response.result, "res")
             } catch (error) {
             }
         };
-        fetchPlots();
+        fetchCropDetail();
     }, [reloadList]);
 
-    const validationSchema = Yup.object().shape({
-        plotName: Yup.string().max(45).required('Name is required'),
-        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-        isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
-        soilId: Yup.string().required('soil type is required'),
-    });
-
-    const renderLand = ({ item }: { item: Plot }) => (
+    const renderProtectionItem = ({ item }: { item: CropProtectionInfo }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{item.plotName}</Text>
+                <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
                 <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => {
-                        openEditModal(item);
-                    }}>
+                    <TouchableOpacity onPress={() => openEditModal(item)}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
                     </TouchableOpacity>
+                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => openChangeStatusModal(item)}>
+                        <MaterialCommunityIcons name="tag" size={22} color="#388e3c" />
+                    </TouchableOpacity>
                 </View>
             </View>
-            <Text style={styles.field}>Total Area: {item.plotTotalArea}</Text>
-            <Text style={styles.field}>Soil: {item.soilColor}</Text>
-            {item.isRiser && (
-                <View style={styles.sectionRiser}>
-                    <Text style={styles.sectionTitle}>Riser</Text>
-                    <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
-                    <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
-                    <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
-                </View>
-            )}
+            <Text style={{ fontSize: 16, marginVertical: 4, }}><MaterialCommunityIcons name="shield" size={18} color="#FF9800" />  Protection Name: {item.protectionName}</Text>
+            <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Protection Deploy Expected Date: {AppFunctions.formatDate(item.protectionDeployExpectedDate)}</Text>
+
+            <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Protection Deploy Actual Date: {AppFunctions.formatDate(item.protectionDeployActualDate)}</Text>
+            <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Notes: {item.protectionDeployActualDateNotes}</Text>
+
         </View>
     );
+
+    // const validationSchema = (isActualDeployed: boolean) => Yup.object().shape({
+    //     protectionDeployExpectedDate: Yup.string().required('Date is required'),
+    //     protectionName: Yup.string().required('Protection Name is required'),
+    //     protectionDeployActualDate: Yup.string().nullable(),
+    //     protectionDeployActualDateNotes: Yup.string().nullable(),
+    // });
+
+    const getValidationSchema = (isChangeStatus: boolean) =>
+        Yup.object().shape({
+            protectionDeployExpectedDate: Yup.string().required('Date is required'),
+            protectionName: Yup.string().required('Protection Name is required'),
+            protectionDeployActualDate: Yup.string()
+                .nullable()
+                .when([], {
+                    is: () => isChangeStatus,
+                    then: schema => schema.required('Actual Date is required'),
+                    otherwise: schema => schema.nullable(),
+                }),
+            protectionDeployActualDateNotes: Yup.string()
+                .nullable()
+                .when([], {
+                    is: () => isChangeStatus,
+                    then: schema => schema.required('Protection Notes are required'),
+                    otherwise: schema => schema.nullable(),
+                }),
+        });
 
     return (
         <View style={{ flex: 1 }}>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add CropHome</Text>
+                <Text style={styles.addBtnText}>Add Protection</Text>
             </TouchableOpacity>
+
+
             <FlatList
-                data={plots}
-                renderItem={renderLand}
+                data={cropDetail?.extraProtections}
+                renderItem={renderProtectionItem}
                 keyExtractor={item => item.code.toString()}
                 contentContainerStyle={{ padding: 16 }}
             />
+
             <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -222,23 +258,20 @@ const CropHome = (props: any) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editLand ? 'Edit CropHome' : 'Add CropHome'}</Text>
+                            <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropProtection' : 'Add CropProtection'}</Text>
                             <Formik
                                 initialValues={{
-                                    plotName: editLand?.plotName || '',
-                                    plotLength: editLand?.plotLength?.toString() || '',
-                                    plotWidth: editLand?.plotWidth?.toString() || '',
-                                    isRiser: editLand?.isRiser || false,
-                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
-                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilId: editLand?.soilId || '',
-                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
-                                    code: editLand?.code || '',
+                                    protectionDeployExpectedDate: editCropProtection?.protectionDeployExpectedDate || '',
+                                    code: editCropProtection?.code || '',
+                                    protectionName: editCropProtection?.protectionName as string || '',
+                                    protectionDeployActualDate: editCropProtection?.protectionDeployActualDate || '',
+                                    protectionDeployActualDateNotes: editCropProtection?.protectionDeployActualDateNotes as string || '',
+
                                 }}
-                                validationSchema={validationSchema}
+                                validationSchema={getValidationSchema(isChangeStatus)}
                                 onSubmit={(values, { resetForm }) => {
-                                    if (!editLand) {
-                                        handleAddPlot(values);
+                                    if (!isChangeStatus) {
+                                        handleAddEditProtection(values);
                                     }
                                     else {
                                         handleUpdatePlot(values);
@@ -250,85 +283,48 @@ const CropHome = (props: any) => {
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
                                         {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            onBlur={() => handleBlur('plotName')}
-                                            value={values.plotName}
-                                            required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
-                                        <AppTextInput
-                                            placeholder="Length"
-                                            onBlur={() => handleBlur('plotLength')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotLength}
-                                            required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
-                                        <AppTextInput
-                                            placeholder="Width"
-                                            onBlur={() => handleBlur('plotWidth')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotWidth}
-                                            required={true}
-                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
-                                            onChangeText={handleChange('plotWidth')} />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Riser</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={riserSides}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.riserSide}
-                                                onChange={item => setFieldValue('riserSide', item.value)}
-                                                placeholder="Select Riser Side"
+                                        {!isChangeStatus && <>
+                                            <AppTextInput
+                                                placeholder="Protection Name"
+                                                maxLength={45}
+                                                onBlur={handleBlur('protectionName')}
+                                                value={values.protectionName}
+                                                required={true}
+                                                error={touched.protectionName && errors.protectionName ? errors.protectionName : ''}
+                                                onChangeText={handleChange('protectionName')} />
+                                            <DateControl
+                                                value={values.protectionDeployExpectedDate}
+                                                setFieldValue={setFieldValue}
+                                                name="protectionDeployExpectedDate"
+                                                error={touched.protectionDeployExpectedDate && errors.protectionDeployExpectedDate ? errors.protectionDeployExpectedDate : ''}
+                                                touched={touched.protectionDeployExpectedDate}
+                                                placeholder="Protection Deploy Expected Date"
+                                                required={true}
                                             />
-                                        </View>
-                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <AppTextInput
-                                            placeholder="Riser Distance"
-                                            onBlur={() => handleBlur('plotRiserDistance')}
-                                            required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <AppTextInput
-                                            placeholder="Bed Actual Count"
-                                            onBlur={() => handleBlur('plotBedActualCount')}
-                                            required={true}
-                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={soilDataOptions}
-                                                labelField="soilColor"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Select Soil Color"
+                                        </>}
+
+                                        {isChangeStatus && <>
+                                            <DateControl
+                                                value={values.protectionDeployActualDate}
+                                                setFieldValue={setFieldValue}
+                                                name="protectionDeployActualDate"
+                                                error={touched.protectionDeployActualDate && errors.protectionDeployActualDate ? errors.protectionDeployActualDate : ''}
+                                                touched={touched.protectionDeployActualDate}
+                                                placeholder="Protection Deploy Actual Date"
+                                                required={true}
                                             />
-                                        </View>
-                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
-                                            <Text style={styles.error}>{errors.soilId}</Text>
-                                        )}
+                                            <AppTextInput
+                                                placeholder="Notes"
+                                                maxLength={45}
+                                                onBlur={handleBlur('protectionDeployActualDateNotes')}
+                                                value={values.protectionDeployActualDateNotes}
+                                                required={true}
+                                                error={touched.protectionDeployActualDateNotes && errors.protectionDeployActualDateNotes ? errors.protectionDeployActualDateNotes : ''}
+                                                onChangeText={handleChange('protectionDeployActualDateNotes')} />
+                                        </>}
+
+
+
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>
@@ -501,6 +497,5 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CropHome;
-
+export default CropProtection;
 

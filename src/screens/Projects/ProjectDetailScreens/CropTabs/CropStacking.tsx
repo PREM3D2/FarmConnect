@@ -11,6 +11,8 @@ import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
+import toastConfig from '../../../../components/ToastConfig';
+import { showToast } from '../../../../components/ShowToast';
 
 
 const riserSides = [
@@ -117,26 +119,27 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
         setReloadList(!reloadList);
     }
 
-    const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-            code: values.code,
+    const handleUpdateStackingDate = async (values: any) => {
+        const stackingStatusData = {
+            plotCropId: values.code,
+            stackingStatus: true,
+            stackingDate: values.stackingDate,
         };
-        const updatePlot = async () => {
+        const updateStackingDate = async () => {
             try {
-                await LandService.updatePlot(plotData);
-            } catch (error) {
+                const response = await CropService.updatecropStackingDate(stackingStatusData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Stacking Status", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Stacking Status", response.result.errorMessage);
+                }
+            } catch (error:any) {
+                showToast('error', "Stacking Status", error.message);
             }
         };
-        updatePlot();
+        updateStackingDate();
         setReloadList(!reloadList);
     }
 
@@ -157,7 +160,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                console.log(response.result, "res")
             } catch (error) {
             }
         };
@@ -167,35 +169,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
     const validationSchema = Yup.object().shape({
         stackingDate: Yup.string().required('Date is required'),
     });
-
-    const renderLand = ({ item }: { item: any }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{item.plotCropName
-                }</Text>
-                <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => {
-                        openEditModal(item);
-                    }}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    {/* <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
-                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity> */}
-                </View>
-            </View>
-            <Text style={styles.field}>Stacking Date: {item.stackingDate}</Text>
-            <Text style={styles.field}>Stacking Status: {item.stackingStatus}</Text>
-            {/* {item.isRiser && (
-                <View style={styles.sectionRiser}>
-                    <Text style={styles.sectionTitle}>Riser</Text>
-                    <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
-                    <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
-                    <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
-                </View>
-            )} */}
-        </View>
-    );
 
     return (
         <View style={{ flex: 1 }}>
@@ -217,7 +190,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                             </TouchableOpacity>
                         </View>
                     </View>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking Date: {AppFunctions.formatDate(cropDetail?.stackingDate, true)}</Text>
+                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking Date: {AppFunctions.formatDate(cropDetail?.stackingDate)}</Text>
                     <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Stacking is Installed"</Text>
                 </View>
             }
@@ -234,16 +207,16 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                             <Formik
                                 initialValues={{
                                     stackingDate: editLand?.stackingDate || '',
-                                    code: editLand?.code || '',
+                                    code: cropDetail?.cropId,
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    if (!editLand) {
-                                        handleAddPlot(values);
-                                    }
-                                    else {
-                                        handleUpdatePlot(values);
-                                    }
+                                    // if (!editLand) {
+                                    //     handleAddPlot(values);
+                                    // }
+                                    // else {
+                                        handleUpdateStackingDate(values);
+                                    // }
                                     setModalVisible(false);
                                     resetForm();
                                 }}
@@ -260,7 +233,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                                             placeholder="Stacking Date"
                                             required={true}
                                         />
-
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>

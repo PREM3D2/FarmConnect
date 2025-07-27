@@ -49,7 +49,7 @@ const Crops = () => {
 
   const Cultivation = () => (
     <View style={styles.scene}>
-      <Text>Home Screen</Text>
+      <CropCultivation project={project} cropCode ={code}/>
     </View>
   );
 
@@ -60,7 +60,7 @@ const Crops = () => {
   );
   const Protection = () => (
     <View style={styles.scene}>
-      <Text>Home Screen</Text>
+      <CropProtection project={project} cropCode ={code}/>
     </View>
   );
 
@@ -72,7 +72,7 @@ const Crops = () => {
 
   const Nursery = () => (
     <View style={styles.scene}>
-      <Text>stack Screen</Text>
+       <CropNursery project={project} cropCode ={code}/>
     </View>
   );
 

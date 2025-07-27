@@ -92,8 +92,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
     const [editLand, setEditLand] = useState<CropDetail | null>(null);
     const [cropDetail, setCropDetail] = useState<CropDetail>();
     const [reloadList, setReloadList] = useState(false);
-    const [cropOptions, setCropOptions] = useState<CropOption[]>([]);
-    const [landOptions, setLandOptions] = useState<Plot[]>([]);
+
     const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
     const navigation = useNavigation();
 
@@ -151,27 +150,6 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
         updatePlot();
         setReloadList(!reloadList);
     }
-
-    useEffect(() => {
-        const fetchLandOptions = async () => {
-            try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setLandOptions([...response.result || []]);
-            } catch (error) {
-                console.error("Error fetching soil data:", error);
-            }
-        };
-        const fetchCropOptions = async () => {
-            try {
-                const response = await CropService.getallCropOptions();
-                setCropOptions([...response.result || []]);
-            } catch (error) {
-                console.error("Error fetching soil data:", error);
-            }
-        };
-        fetchCropOptions();
-        fetchLandOptions();
-    }, []);
 
     useEffect(() => {
         const fetchCropDetail = async () => {

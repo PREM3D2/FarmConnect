@@ -8,6 +8,11 @@ import { Formik } from 'formik';
 import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
+import CropService from '../../../../services/CropService';
+import { AppFunctions } from '../../../../Helpers/AppFunctions';
+import DateControl from '../../../../components/DateControl';
+import toastConfig from '../../../../components/ToastConfig';
+import { showToast } from '../../../../components/ShowToast';
 
 
 const riserSides = [
@@ -43,176 +48,85 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const CropNursery = (props: any) => {
+const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
-    const project = props.ProjectInfo
-    const [editLand, setEditLand] = useState<Plot | null>(null);
-    const [plots, setPlots] = useState<Plot[]>([]);
+    const [cropDetail, setCropDetail] = useState<any>();
+    const [editLand, setEditLand] = useState<any>(null);
     const [reloadList, setReloadList] = useState(false);
-    const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
 
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
     };
 
-
     const openEditModal = (land: any) => {
         setEditLand(land);
         setModalVisible(true);
     };
 
-    const handleDelete = (plot: Plot) => {
-        const deletePlot = async () => {
+    const handleUpdateNurseryDate = async (values: any) => {
+        const nurseryStatusDate = {
+            plotCropId: values.code,
+            plantationNurseryRaised: true,
+            plantationNurseryRaisedDate: values.plantationNurseryRaisedDate,
+        };
+        const updateNurseryDate = async () => {
             try {
-                const response = await LandService.deletePlot(plot.code);
-            } catch (error) {
+                const response = await CropService.updatecropNurseryDate(nurseryStatusDate);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Nursery Status", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Nursery Status", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Nursery Status", error.message);
             }
         };
-        deletePlot();
-        setReloadList(!reloadList);
-    };
-
-    const confirmDelete = (plot: Plot) => {
-        Alert.alert(
-            'Delete CropNursery',
-            `Do you want to Delete the CropNursery ${plot.plotName}?`,
-            [
-                {
-                    text: 'No',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes',
-                    onPress: () => handleDelete(plot),
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: true }
-        );
-    };
-
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-        };
-        const addPlot = async () => {
-            try {
-                await LandService.addPlot(plotData);
-            } catch (error) {
-            }
-        };
-        addPlot();
-        setReloadList(!reloadList);
-    }
-
-    const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-            code: values.code,
-        };
-        const updatePlot = async () => {
-            try {
-                await LandService.updatePlot(plotData);
-            } catch (error) {
-            }
-        };
-        updatePlot();
+        updateNurseryDate();
         setReloadList(!reloadList);
     }
 
     useEffect(() => {
-        const fetchSoilData = async () => {
+        const fetchCropDetail = async () => {
             try {
-                const response = await LandService.getAllSoils();
-                setSoilDataOptions([...response.result || []]);
-            } catch (error) {
-                console.error("Error fetching soil data:", error);
-            }
-        };
-        fetchSoilData();
-    }, []);
-
-    useEffect(() => {
-        console.log("Project ID:", project);
-        const fetchPlots = async () => {
-            if (typeof project?.projectId !== 'number') return;
-            try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setPlots(response.result || []);
+                const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
+                setCropDetail(response.result || []);
             } catch (error) {
             }
         };
-        fetchPlots();
+        fetchCropDetail();
     }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
-        plotName: Yup.string().max(45).required('Name is required'),
-        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-        isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
-        soilId: Yup.string().required('soil type is required'),
+        plantationNurseryRaisedDate: Yup.string().required('Date is required'),
     });
-
-    const renderLand = ({ item }: { item: Plot }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{item.plotName}</Text>
-                <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => {
-                        openEditModal(item);
-                    }}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
-                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <Text style={styles.field}>Total Area: {item.plotTotalArea}</Text>
-            <Text style={styles.field}>Soil: {item.soilColor}</Text>
-            {item.isRiser && (
-                <View style={styles.sectionRiser}>
-                    <Text style={styles.sectionTitle}>Riser</Text>
-                    <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
-                    <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
-                    <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
-                </View>
-            )}
-        </View>
-    );
 
     return (
         <View style={{ flex: 1 }}>
-            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add CropNursery</Text>
-            </TouchableOpacity>
-            <FlatList
-                data={plots}
-                renderItem={renderLand}
-                keyExtractor={item => item.code.toString()}
-                contentContainerStyle={{ padding: 16 }}
-            />
+            {!cropDetail?.plantationNurseryRaised
+                &&
+                <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                    <Icon name="plus-circle" size={24} color='#388e3c' />
+                    <Text style={styles.addBtnText}>Add Nursery</Text>
+                </TouchableOpacity>
+            }
+            {cropDetail?.plantationNurseryRaised
+                &&
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
+                        <View style={styles.cardActions}>
+                            <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
+                                <Icon name="pencil" size={22} color="#388e3c" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {AppFunctions.formatDate(cropDetail?.plantationNurseryRaised)}</Text>
+                    <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Nursery is Raised"</Text>
+                </View>
+            }
             <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -222,27 +136,15 @@ const CropNursery = (props: any) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editLand ? 'Edit CropNursery' : 'Add CropNursery'}</Text>
+                            <Text style={styles.modalTitle}>{editLand ? 'Edit Nursery Date' : 'Add Nursery Date'}</Text>
                             <Formik
                                 initialValues={{
-                                    plotName: editLand?.plotName || '',
-                                    plotLength: editLand?.plotLength?.toString() || '',
-                                    plotWidth: editLand?.plotWidth?.toString() || '',
-                                    isRiser: editLand?.isRiser || false,
-                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
-                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilId: editLand?.soilId || '',
-                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
-                                    code: editLand?.code || '',
+                                    plantationNurseryRaisedDate: editLand?.plantationNurseryRaisedDate || '',
+                                    code: cropDetail?.cropId,
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    if (!editLand) {
-                                        handleAddPlot(values);
-                                    }
-                                    else {
-                                        handleUpdatePlot(values);
-                                    }
+                                    handleUpdateNurseryDate(values);
                                     setModalVisible(false);
                                     resetForm();
                                 }}
@@ -250,85 +152,15 @@ const CropNursery = (props: any) => {
                                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                                     <>
                                         {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            onBlur={() => handleBlur('plotName')}
-                                            value={values.plotName}
+                                        <DateControl
+                                            value={values.plantationNurseryRaisedDate}
+                                            setFieldValue={setFieldValue}
+                                            name="plantationNurseryRaisedDate"
+                                            error={touched.plantationNurseryRaisedDate && errors.plantationNurseryRaisedDate ? errors.plantationNurseryRaisedDate : ''}
+                                            touched={touched.plantationNurseryRaisedDate}
+                                            placeholder="Nursery Date"
                                             required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
-                                        <AppTextInput
-                                            placeholder="Length"
-                                            onBlur={() => handleBlur('plotLength')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotLength}
-                                            required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
-                                        <AppTextInput
-                                            placeholder="Width"
-                                            onBlur={() => handleBlur('plotWidth')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotWidth}
-                                            required={true}
-                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
-                                            onChangeText={handleChange('plotWidth')} />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Riser</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={riserSides}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.riserSide}
-                                                onChange={item => setFieldValue('riserSide', item.value)}
-                                                placeholder="Select Riser Side"
-                                            />
-                                        </View>
-                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <AppTextInput
-                                            placeholder="Riser Distance"
-                                            onBlur={() => handleBlur('plotRiserDistance')}
-                                            required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <AppTextInput
-                                            placeholder="Bed Actual Count"
-                                            onBlur={() => handleBlur('plotBedActualCount')}
-                                            required={true}
-                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={soilDataOptions}
-                                                labelField="soilColor"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Select Soil Color"
-                                            />
-                                        </View>
-                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
-                                            <Text style={styles.error}>{errors.soilId}</Text>
-                                        )}
+                                        />
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
                                                 <Text style={styles.saveBtnText}>Save</Text>
@@ -502,5 +334,4 @@ const styles = StyleSheet.create({
 });
 
 export default CropNursery;
-
 
