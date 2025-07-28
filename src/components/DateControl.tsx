@@ -66,7 +66,6 @@ const DateControl: React.FC<DateControlProps> = ({
   const handleConfirm = (date: Date) => {
     setPickerVisible(false);
     setFieldValue(name, formatDate(date));
-    console.log("On cahnges",name, formatDate(date) )
   };
 
   return (

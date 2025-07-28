@@ -8,6 +8,11 @@ import { Formik } from 'formik';
 import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
+import CropService from '../../../../services/CropService';
+import { AppFunctions } from '../../../../Helpers/AppFunctions';
+import DateControl from '../../../../components/DateControl';
+import { showToast } from '../../../../components/ShowToast';
+import { Card, Divider } from 'react-native-paper';
 
 
 const riserSides = [
@@ -43,40 +48,63 @@ type Plot = {
     plotBedEstimateCount: number;
 };
 
-const CropHarvest = (props: any) => {
+type CropProtectionInfo = {
+    code: number;
+    plotCropId: number;
+    protectionName: string;
+    protectionDeployExpectedDate: string; // Format: 'YYYY-MM-DD'
+    protectionDeployActualDate: string;   // Format: 'YYYY-MM-DD'
+    protectionDeployActualDateNotes: string;
+};
+
+const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
-    const project = props.ProjectInfo
-    const [editLand, setEditLand] = useState<Plot | null>(null);
+    const [cropDetail, setCropDetail] = useState<any>();
+    const [editCropProtection, setEditCropProtection] = useState<any>(null);
     const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
     const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
+    const [isChangeStatus, setIsChangeStatus] = useState(false);
+    const [expandedItem, setExpandedItem] = useState<boolean>(false);
+    const [currentSelectedForm, setCurrentSelectedForm] = useState<string>('')
 
     const openAddModal = () => {
-        setEditLand(null);
+        setEditCropProtection(null);
         setModalVisible(true);
+        setIsChangeStatus(false);
     };
 
 
-    const openEditModal = (land: any) => {
-        setEditLand(land);
+    const openEditModal = (land: any, selectedForm: any) => {
+        setCurrentSelectedForm(selectedForm)
+        setEditCropProtection(land);
         setModalVisible(true);
+        setIsChangeStatus(false);
     };
 
-    const handleDelete = (plot: Plot) => {
+    const openChangeStatusModal = (land: any) => {
+        setEditCropProtection(land);
+        setModalVisible(true);
+        setIsChangeStatus(true);
+    };
+
+    const handleDelete = (yieldId: string) => {
         const deletePlot = async () => {
             try {
-                const response = await LandService.deletePlot(plot.code);
+                const response = await CropService.deleteYield(yieldId);
+                showToast('success', 'Delete Yield', 'Yield has been Deleted Successfully');
             } catch (error) {
+                showToast('error', 'Delete Yield', 'Yield has been Deleted Successfully');
             }
         };
         deletePlot();
         setReloadList(!reloadList);
     };
 
-    const confirmDelete = (plot: Plot) => {
+    const confirmDelete = (id: string) => {
         Alert.alert(
-            'Delete CropHarvest',
-            `Do you want to Delete the CropHarvest ${plot.plotName}?`,
+            'Delete Yield',
+            `Do you want to Delete the Yield Data?`,
             [
                 {
                     text: 'No',
@@ -84,7 +112,7 @@ const CropHarvest = (props: any) => {
                 },
                 {
                     text: 'Yes',
-                    onPress: () => handleDelete(plot),
+                    onPress: () => handleDelete(id),
                     style: 'destructive',
                 },
             ],
@@ -92,45 +120,100 @@ const CropHarvest = (props: any) => {
         );
     };
 
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
+    const handleHarvestStartExpected = async (values: any) => {
+        const harvestStartData = {
+            plotCropId: cropDetail?.cropId,
+            expectedDate: values?.expectedDate,
+            harvestingYieldKilosExpected: values?.harvestingYieldKilosExpected,
+            harvestingIntervalCountExpected: values?.harvestingIntervalCountExpected
         };
+
+        console.log("harvestStartData", harvestStartData)
+
+
+        const harvestEndData = {
+            plotCropId: cropDetail?.cropId,
+            expectedDate: values?.expectedDate,
+        }
+
+        console.log("harvestEndData", harvestEndData)
+
+        // if (currentSelectedForm === "HARVESTSTARTEXPECTED") {
+        //     (harvestData as any).harvestingYieldKilosExpected = values.harvestingYieldKilosExpected
+        //     (harvestData as any).harvestingIntervalCountExpected = values.harvestingIntervalCountExpected
+        // }
+
+
+
         const addPlot = async () => {
             try {
-                await LandService.addPlot(plotData);
+                const response = currentSelectedForm === "HARVESTSTARTEXPECTED" ? await CropService.updateharveststartexpectedDate(harvestStartData) : await CropService.updateharvestendexpectedDate(harvestEndData)
+                console.log(response)
             } catch (error) {
+                console.log(error)
             }
         };
         addPlot();
         setReloadList(!reloadList);
     }
 
+    const handleAddEditYield = async (values: any) => {
+        const harvestStartData = {
+            plotCropId: cropDetail?.cropId,
+            harvestDate: values?.expectedDate,
+            yieldCollectedKillosCount: values?.harvestingYieldKilosExpected,
+        };
+
+        console.log("harvestStartData", harvestStartData)
+
+
+
+        const addPlot = async () => {
+            try {
+                const response = await CropService.addUpdateCropHarvest(harvestStartData)
+                console.log(response)
+            } catch (error) {
+                console.log(error)
+            }
+        };
+        addPlot();
+        setReloadList(!reloadList);
+    }
+
+    const handleHarvestStartActual = async (values: any) => {
+        const harvestData = {
+            plotCropId: cropDetail?.cropId,
+            actualDate: values.actualDate,
+            actualDateNotes: values.actualDateNotes,
+        };
+
+        const addPlot = async () => {
+            try {
+                const response = currentSelectedForm === "HARVESTSTARTACTUAL" ? await CropService.updateharveststartactualDate(harvestData) : await CropService.updateharvestendactualDate(harvestData)
+                console.log(response)
+            } catch (error) {
+                console.log(error)
+            }
+        };
+        addPlot();
+        setReloadList(!reloadList);
+    }
+
+
     const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
+        const protectionData = {
             code: values.code,
+            plotCropId: cropDetail?.cropId,
+            protectionDeployActualDate: values.protectionDeployActualDate,
+            protectionDeployActualDateNotes: values.protectionDeployActualDateNotes,
         };
         const updatePlot = async () => {
             try {
-                await LandService.updatePlot(plotData);
+                const response = await CropService.updateProtectionActualDate(protectionData);
+                console.log(response, "response")
+                showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
             } catch (error) {
+                showToast('error', 'Actual Protection Date', 'Error');
             }
         };
         updatePlot();
@@ -150,69 +233,358 @@ const CropHarvest = (props: any) => {
     }, []);
 
     useEffect(() => {
-        console.log("Project ID:", project);
-        const fetchPlots = async () => {
-            if (typeof project?.projectId !== 'number') return;
+        const fetchCropDetail = async () => {
             try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setPlots(response.result || []);
+                const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
+                setCropDetail(response.result || []);
+                console.log(response.result, "res")
             } catch (error) {
             }
         };
-        fetchPlots();
+        fetchCropDetail();
     }, [reloadList]);
 
-    const validationSchema = Yup.object().shape({
-        plotName: Yup.string().max(45).required('Name is required'),
-        plotLength: Yup.number().typeError('Length must be a number').required('Length is required'),
-        plotWidth: Yup.number().typeError('Width must be a number').required('Width is required'),
-        isRiser: Yup.boolean().required(),
-        plotRiserDistance: Yup.number().typeError('Riser Distance must be a number').required('Riser Distance is required'),
-        plotBedActualCount: Yup.number().typeError('Bed Count must be a number').required('Bed Count is required'),
-        riserSide: Yup.string().required('Riser Side is required'),
-        soilId: Yup.string().required('soil type is required'),
+    const renderYieldItem = (item: any ) => {
+        return (
+            <View key= {item.code} style={styles.card}>
+                <Card.Content>
+                    <View></View>
+                    <View style={styles.cardActions}>
+                        {/* <TouchableOpacity >
+                            <Icon name="pencil" size={22} color="#388e3c" />
+                        </TouchableOpacity> */}
+                        <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item.code)}>
+                            <MaterialCommunityIcons name="delete" size={22} color="#900" />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Date: {AppFunctions.formatDate(item?.harvestDate)}</Text>
+                    <Text style={styles.subItem}>- Harvest Collected : {item?.yieldCollectedKillosCount}</Text>
+                </Card.Content>
+            </View>)
+    };
+
+    const getHarvestStartExpectedDataValidation = currentSelectedForm === "HARVESTSTARTEXPECTED" ? Yup.object().shape({
+        expectedDate: Yup.string().required('Expected date is required'),
+        harvestingYieldKilosExpected: Yup.number().typeError('Harvest Yield in Kilos must be a number').required('Harvest Yield in Kilos  is required'),
+        harvestingIntervalCountExpected: Yup.number().typeError('Harvest Interval Count must be a number').required('Harvest Interval Count  is required'),
+    }) : Yup.object().shape({
+        expectedDate: Yup.string().required('Expected date is required'),
+    })
+
+    const getAddEditHarvestYieldValidation = Yup.object().shape({
+        expectedDate: Yup.string().required('Expected date is required'),
+        harvestingYieldKilosExpected: Yup.number().typeError('Harvest Yield in Kilos must be a number').required('Harvest Yield in Kilos  is required'),
+    })
+
+    const getHarvestStartActualDataValidation = Yup.object().shape({
+        actualDate: Yup.string().required('Actual date is required'),
+        actualDateNotes: Yup.string().required('Notes  is required'),
+
     });
 
-    const renderLand = ({ item }: { item: Plot }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{item.plotName}</Text>
-                <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => {
-                        openEditModal(item);
-                    }}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
-                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <Text style={styles.field}>Total Area: {item.plotTotalArea}</Text>
-            <Text style={styles.field}>Soil: {item.soilColor}</Text>
-            {item.isRiser && (
-                <View style={styles.sectionRiser}>
-                    <Text style={styles.sectionTitle}>Riser</Text>
-                    <Text style={styles.field}>Distance: {item.plotRiserDistance}</Text>
-                    <Text style={styles.field}>Actual Bed Count: {item.plotBedActualCount}</Text>
-                    <Text style={styles.field}>Estimated Bed Count: {item.plotBedEstimateCount}</Text>
-                </View>
-            )}
-        </View>
-    );
+    const getHarvestStartExpectedData = () => {
+        return (
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
+                <Formik
+                    initialValues={{
+                        plotCropId: cropDetail?.cropId || '',
+                        expectedDate: editCropProtection?.expectedDate || '',
+                        harvestingYieldKilosExpected: editCropProtection?.harvestingYieldKilosExpected as string || '',
+                        harvestingIntervalCountExpected: editCropProtection?.harvestingIntervalCountExpected as string || '',
+                    }}
+                    validationSchema={getHarvestStartExpectedDataValidation}
+                    onSubmit={(values, { resetForm }) => {
+                        handleHarvestStartExpected(values);
+                        setModalVisible(false);
+                        resetForm();
+                    }}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                        <>
+                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+
+                            <DateControl
+                                value={values.expectedDate}
+                                setFieldValue={setFieldValue}
+                                name="expectedDate"
+                                error={touched.expectedDate && errors.expectedDate ? errors.expectedDate : ''}
+                                touched={touched.expectedDate}
+                                placeholder="Harvest Start Expected Date"
+                                required={true}
+                            />{
+                                currentSelectedForm === "HARVESTSTARTEXPECTED" && <>
+                                    <AppTextInput
+                                        placeholder="Harvesting Yield Kilos Expected"
+                                        onBlur={handleBlur('harvestingYieldKilosExpected')}
+                                        value={values.harvestingYieldKilosExpected}
+                                        required={true}
+                                        error={touched.harvestingYieldKilosExpected && errors.harvestingYieldKilosExpected ? errors.harvestingYieldKilosExpected : ''}
+                                        onChangeText={handleChange('harvestingYieldKilosExpected')} />
+                                    <AppTextInput
+                                        placeholder="Harvesting Interval Count Expected"
+                                        maxLength={45}
+                                        onBlur={handleBlur('harvestingIntervalCountExpected')}
+                                        value={values.harvestingIntervalCountExpected}
+                                        required={true}
+                                        error={touched.harvestingIntervalCountExpected && errors.harvestingIntervalCountExpected ? errors.harvestingIntervalCountExpected : ''}
+                                        onChangeText={handleChange('harvestingIntervalCountExpected')} />
+                                </>
+                            }
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                    <Text style={styles.saveBtnText}>Save</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                    setModalVisible(false);
+                                }}>
+                                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
+                </Formik>
+            </ScrollView>
+        )
+    }
+
+    const getHarvestStartActualData = () => {
+        return (
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
+                <Formik
+                    initialValues={{
+                        plotCropId: cropDetail?.cropId || '',
+                        actualDate: editCropProtection?.actualDate || '',
+                        actualDateNotes: editCropProtection?.actualDateNotes as string || '',
+                    }}
+                    validationSchema={getHarvestStartActualDataValidation}
+                    onSubmit={(values, { resetForm }) => {
+                        handleHarvestStartActual(values);
+                        setModalVisible(false);
+                        resetForm();
+                    }}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                        <>
+                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+
+                            <DateControl
+                                value={values.actualDate}
+                                setFieldValue={setFieldValue}
+                                name="actualDate"
+                                error={touched.actualDate && errors.actualDate ? errors.actualDate : ''}
+                                touched={touched.actualDate}
+                                placeholder="Harvest Actual Date"
+                                required={true}
+                            />
+                            <AppTextInput
+                                placeholder="Notes"
+                                onBlur={handleBlur('actualDateNotes')}
+                                value={values.actualDateNotes}
+                                required={true}
+                                error={touched.actualDateNotes && errors.actualDateNotes ? errors.actualDateNotes : ''}
+                                onChangeText={handleChange('actualDateNotes')} />
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                    <Text style={styles.saveBtnText}>Save</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                    setModalVisible(false);
+                                }}>
+                                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
+                </Formik>
+            </ScrollView>
+        )
+    }
+
+    const addEditHarvestYield = () => {
+        return (
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
+                <Formik
+                    initialValues={{
+                        plotCropId: cropDetail?.cropId || '',
+                        expectedDate: editCropProtection?.expectedDate || '',
+                        harvestingYieldKilosExpected: editCropProtection?.harvestingYieldKilosExpected as string || '',
+                    }}
+                    validationSchema={getAddEditHarvestYieldValidation}
+                    onSubmit={(values, { resetForm }) => {
+                        handleAddEditYield(values);
+                        setModalVisible(false);
+                        resetForm();
+                    }}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                        <>
+                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
+
+                            <DateControl
+                                value={values.expectedDate}
+                                setFieldValue={setFieldValue}
+                                name="expectedDate"
+                                error={touched.expectedDate && errors.expectedDate ? errors.expectedDate : ''}
+                                touched={touched.expectedDate}
+                                placeholder="Harvest Date"
+                                required={true}
+                            />
+                            <AppTextInput
+                                placeholder="Harvesting Yield Kilos Expected"
+                                onBlur={handleBlur('harvestingYieldKilosExpected')}
+                                value={values.harvestingYieldKilosExpected}
+                                required={true}
+                                error={touched.harvestingYieldKilosExpected && errors.harvestingYieldKilosExpected ? errors.harvestingYieldKilosExpected : ''}
+                                onChangeText={handleChange('harvestingYieldKilosExpected')} />
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
+                                    <Text style={styles.saveBtnText}>Save</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                                    setModalVisible(false);
+                                }}>
+                                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
+                </Formik>
+            </ScrollView>
+        )
+    }
+
+    const getValidationSchema = (isChangeStatus: boolean) =>
+        Yup.object().shape({
+            protectionDeployExpectedDate: Yup.string().required('Date is required'),
+            protectionName: Yup.string().required('Protection Name is required'),
+            protectionDeployActualDate: Yup.string()
+                .nullable()
+                .when([], {
+                    is: () => isChangeStatus,
+                    then: schema => schema.required('Actual Date is required'),
+                    otherwise: schema => schema.nullable(),
+                }),
+            protectionDeployActualDateNotes: Yup.string()
+                .nullable()
+                .when([], {
+                    is: () => isChangeStatus,
+                    then: schema => schema.required('Protection Notes are required'),
+                    otherwise: schema => schema.nullable(),
+                }),
+        });
+
+    const loadFormData = () => {
+        if (currentSelectedForm === "HARVESTSTARTEXPECTED" || currentSelectedForm === "HARVESTENDEXPECTED") return getHarvestStartExpectedData();
+        if (currentSelectedForm === "HARVESTSTARTACTUAL" || currentSelectedForm === "HARVESTENDACTUAL") return getHarvestStartActualData();
+        return addEditHarvestYield();
+    }
 
     return (
-        <View style={{ flex: 1 }}>
-            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                <Icon name="plus-circle" size={24} color='#388e3c' />
-                <Text style={styles.addBtnText}>Add CropHarvest</Text>
-            </TouchableOpacity>
-            <FlatList
-                data={plots}
-                renderItem={renderLand}
-                keyExtractor={item => item.code.toString()}
-                contentContainerStyle={{ padding: 16 }}
-            />
+        <View style={{ flex: 1, marginTop: 20 }}>
+            <ScrollView>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <View style={{ flex: 1, flexDirection: 'row', }}>
+                            <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
+                            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                                {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTSTARTEXPECTED')}>
+                                    <Icon name="pencil" size={22} color="#388e3c" />
+                                </TouchableOpacity> :
+                                    <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                        <Icon name="plus-circle" size={24} color='#388e3c' />
+                                        <Text style={styles.addBtnText}>Add Protection</Text>
+                                    </TouchableOpacity>}
+                            </View>
+                        </View>
+                        <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.harvestStartExpectedDate)}</Text>
+                        {/* <Text style={styles.subItem}>- Harvest Expected(Kilos): {cropDetail?.harvestingYieldKilosExpected}</Text>
+                        <Text style={styles.subItem}>- Harvest Interval Count Expected: {cropDetail?.harvestingIntervalCountExpected}</Text> */}
+                    </Card.Content>
+                </Card>
+                <Card style={styles.card}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                        {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTSTARTACTUAL')}>
+                            <Icon name="pencil" size={22} color="#388e3c" />
+                        </TouchableOpacity> :
+                            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                <Icon name="plus-circle" size={24} color='#388e3c' />
+                                <Text style={styles.addBtnText}>Add Protection</Text>
+                            </TouchableOpacity>}
+                    </View>
+                    <Card.Content>
+                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
+                        <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.harvestStartActualDate)}</Text>
+                    </Card.Content>
+                </Card>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <View >
+                            <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Yield Collection:</Text>
+                            <Text style={styles.subItem}>-Total Yield Collected : {cropDetail?.harvests.map((item:any)=>{ return item.yieldCollectedKillosCount}).reduce((sum:number, num:number) => sum + num, 0)}</Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end', flexDirection: 'row' }}>
+                            <View style={{ flex: 1 }}>
+
+                                <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                    <Icon name="plus-circle" size={24} color='#388e3c' />
+                                </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity onPress={() => setExpandedItem(!expandedItem)} style={styles.addBtn}>
+                                <Text style={styles.accordionToggle}>
+                                    {expandedItem ? 'Minimize ▲' : 'Expand ▼'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {expandedItem && (
+                            <View style={styles.accordionContent}>
+                                {cropDetail?.harvests.map((item: any) => (
+                                    renderYieldItem(item)
+                                ))}
+                            </View>
+                        )}
+
+                    </Card.Content>
+                </Card>
+                <Card style={styles.card}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                        {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
+                            <Icon name="pencil" size={22} color="#388e3c" />
+                        </TouchableOpacity> :
+                            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                <Icon name="plus-circle" size={24} color='#388e3c' />
+                                <Text style={styles.addBtnText}>Add Protection</Text>
+                            </TouchableOpacity>}
+                    </View>
+                    <Card.Content>
+                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                        <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
+                    </Card.Content>
+                </Card>
+                <Card style={styles.card}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                        {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDACTUAL')}>
+                            <Icon name="pencil" size={22} color="#388e3c" />
+                        </TouchableOpacity> :
+                            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                <Icon name="plus-circle" size={24} color='#388e3c' />
+                                <Text style={styles.addBtnText}>Add Protection</Text>
+                            </TouchableOpacity>}
+                    </View>
+                    <Card.Content>
+                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                        <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.harvestEndActualDate)}</Text>
+
+                    </Card.Content>
+                </Card>
+            </ScrollView>
+
+
             <Modal
                 visible={modalVisible}
                 animationType="slide"
@@ -221,128 +593,8 @@ const CropHarvest = (props: any) => {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editLand ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
-                            <Formik
-                                initialValues={{
-                                    plotName: editLand?.plotName || '',
-                                    plotLength: editLand?.plotLength?.toString() || '',
-                                    plotWidth: editLand?.plotWidth?.toString() || '',
-                                    isRiser: editLand?.isRiser || false,
-                                    plotRiserDistance: editLand?.plotRiserDistance?.toString() || '',
-                                    plotBedActualCount: editLand?.plotBedActualCount?.toString() || '',
-                                    soilId: editLand?.soilId || '',
-                                    riserSide: editLand?.riserCalMethod || riserSides[0].value,
-                                    code: editLand?.code || '',
-                                }}
-                                validationSchema={validationSchema}
-                                onSubmit={(values, { resetForm }) => {
-                                    if (!editLand) {
-                                        handleAddPlot(values);
-                                    }
-                                    else {
-                                        handleUpdatePlot(values);
-                                    }
-                                    setModalVisible(false);
-                                    resetForm();
-                                }}
-                            >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
-                                    <>
-                                        {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-                                        <AppTextInput
-                                            placeholder="Plot Name"
-                                            maxLength={45}
-                                            onBlur={() => handleBlur('plotName')}
-                                            value={values.plotName}
-                                            required={true}
-                                            error={touched.plotName && errors.plotName ? errors.plotName : ''}
-                                            onChangeText={handleChange('plotName')} />
-                                        <AppTextInput
-                                            placeholder="Length"
-                                            onBlur={() => handleBlur('plotLength')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotLength}
-                                            required={true}
-                                            error={touched.plotLength && errors.plotLength ? errors.plotLength : ''}
-                                            onChangeText={handleChange('plotLength')} />
-                                        <AppTextInput
-                                            placeholder="Width"
-                                            onBlur={() => handleBlur('plotWidth')}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotWidth}
-                                            required={true}
-                                            error={touched.plotWidth && errors.plotWidth ? errors.plotWidth : ''}
-                                            onChangeText={handleChange('plotWidth')} />
-                                        <View style={styles.checkboxRow}>
-                                            <TouchableOpacity
-                                                style={styles.checkbox}
-                                                onPress={() => setFieldValue('isRiser', !values.isRiser)}
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name={values.isRiser ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                                                    size={22}
-                                                    color="#388e3c"
-                                                />
-                                            </TouchableOpacity>
-                                            <Text style={styles.checkboxLabel}>Riser</Text>
-                                        </View>
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={riserSides}
-                                                labelField="label"
-                                                valueField="value"
-                                                value={values.riserSide}
-                                                onChange={item => setFieldValue('riserSide', item.value)}
-                                                placeholder="Select Riser Side"
-                                            />
-                                        </View>
-                                        {touched.riserSide && errors.riserSide && <Text style={styles.error}>{errors.riserSide}</Text>}
-                                        <AppTextInput
-                                            placeholder="Riser Distance"
-                                            onBlur={() => handleBlur('plotRiserDistance')}
-                                            required={true}
-                                            error={touched.plotRiserDistance && errors.plotRiserDistance ? errors.plotRiserDistance : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotRiserDistance}
-                                            onChangeText={handleChange('plotRiserDistance')} />
-                                        <AppTextInput
-                                            placeholder="Bed Actual Count"
-                                            onBlur={() => handleBlur('plotBedActualCount')}
-                                            required={true}
-                                            error={touched.plotBedActualCount && errors.plotBedActualCount ? errors.plotBedActualCount : ''}
-                                            keyboardType="decimal-pad"
-                                            value={values.plotBedActualCount}
-                                            onChangeText={handleChange('plotBedActualCount')} />
-                                        <View style={styles.dropdownRow}>
-                                            <Dropdown
-                                                style={styles.dropdown}
-                                                data={soilDataOptions}
-                                                labelField="soilColor"
-                                                valueField="code"
-                                                value={values.soilId}
-                                                onChange={item => setFieldValue('soilId', item.value)}
-                                                placeholder="Select Soil Color"
-                                            />
-                                        </View>
-                                        {touched.soilId && errors.soilId && typeof errors.soilId === 'string' && (
-                                            <Text style={styles.error}>{errors.soilId}</Text>
-                                        )}
-                                        <View style={styles.modalActions}>
-                                            <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
-                                                <Text style={styles.saveBtnText}>Save</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.cancelBtn} onPress={() => {
-                                                setModalVisible(false);
-                                            }}>
-                                                <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </>
-                                )}
-                            </Formik>
-                        </ScrollView>
+                        {loadFormData()}
+
                     </View>
                 </View>
             </Modal>
@@ -351,6 +603,13 @@ const CropHarvest = (props: any) => {
 };
 
 const styles = StyleSheet.create({
+
+    container: { padding: 16, marginVertical: 10 },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10 },
+    row: { fontSize: 16, marginVertical: 4 },
+    section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
+    subItem: { fontSize: 15, marginLeft: 20, marginVertical: 2 },
+    divider: { marginVertical: 8 },
     addBtn: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -366,13 +625,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 16,
-        elevation: 2,
-    },
+    // card: {
+    //     backgroundColor: '#fff',
+    //     borderRadius: 10,
+    //     padding: 16,
+    //     marginBottom: 16,
+    //     elevation: 2,
+    // },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -386,6 +645,7 @@ const styles = StyleSheet.create({
     },
     cardActions: {
         flexDirection: 'row',
+        justifyContent:"flex-end"
     },
     field: {
         fontSize: 15,
@@ -477,6 +737,18 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 16,
     },
+    accordionContent: {
+        backgroundColor: '#f1f8e9',
+        padding: 10,
+        borderRadius: 8,
+        marginTop: 8,
+    },
+    accordionToggle: {
+        color: '#388e3c',
+        fontWeight: 'bold',
+        marginTop: 8,
+        marginBottom: 4,
+    },
     saveBtn: {
         backgroundColor: '#388e3c',
         paddingVertical: 10,
@@ -502,5 +774,4 @@ const styles = StyleSheet.create({
 });
 
 export default CropHarvest;
-
 

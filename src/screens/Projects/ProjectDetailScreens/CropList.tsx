@@ -21,12 +21,6 @@ const CropCultivaionTypeOptions = [
     { label: 'Plantation', value: 'plantation' },
 ];
 
-type Soil = {
-    code: 1,
-    soilColor: string,
-    soilDesc: string
-}
-
 type CropOption = {
     code: 1,
     cropName: string,
@@ -290,7 +284,7 @@ const CropList = ({ }) => {
     }
 
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen", { project: project, code: item.code })}>
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen", { project: project, cropDetail: item })}>
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>

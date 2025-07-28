@@ -270,7 +270,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
                 <Card style={styles.card}>
                     <Card.Content>
                         <Text style={styles.row}><MaterialCommunityIcons name="map-marker" size={18} color="#333" />  Land: {cropDetail?.plotName}</Text>
-                        <Text style={styles.row}><MaterialCommunityIcons name="leaf" size={18} color="#4CAF50" />  Cultivation: {cropDetail?.cropCultivationType}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="leaf" size={18} color="#4CAF50" />  Cultivation Type: {cropDetail?.cropCultivationType}</Text>
                         <Text style={styles.row}><MaterialCommunityIcons name="office-building" size={18} color="#607D8B" />  Crop Type: {cropDetail?.cropType}</Text>
                         <Text style={styles.row}><MaterialCommunityIcons name="tag" size={18} color="#9C27B0" />  Plantation Method: {cropDetail?.plantationMethod}</Text>
 
@@ -302,6 +302,11 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
                         <Text style={styles.section}><MaterialCommunityIcons name="calendar-end" size={18} color="#E91E63" />  Harvest End:</Text>
                         <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
                         <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestEndActualDate, true)}</Text>
+
+                        <Divider style={styles.divider} />
+                        <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
+                        <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.uprootingExpectedDate)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.uprootingActualDate)}</Text>
                     </Card.Content>
                 </Card>
             </ScrollView>
@@ -311,7 +316,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
 };
 
 const styles = StyleSheet.create({
-    container: { padding: 16, marginVertical:10 },
+    container: { padding: 16, marginVertical:20, paddingBottom:50 },
     card: { borderRadius: 12, elevation: 3 , backgroundColor: "#fff"},
     row: { fontSize: 16, marginVertical: 4 },
     section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },

@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
-
 import CropHome from './CropTabs/CropHome';
 import CropStacking from './CropTabs/CropStacking';
 import CropNursery from './CropTabs/CropNursery';
 import CropProtection from './CropTabs/CropProtection';
 import CropCultivation from './CropTabs/CropCultivation';
 import CropHarvest from './CropTabs/CropHarvest';
-import CropUproot from './CropTabs/CropUproot';
 import CustomTabView from '../../../components/CustomTabView';
 import { Project } from '../ProjectListScreen';
+import CropUproot from './CropTabs/CropUproot';
 
-const initialLayout = { width: Dimensions.get('window').width };
 
 const Crops = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { project } = (route.params as { project: Project });
-  const { code } = (route.params as { code: number });
+  const { cropDetail } = (route.params as { cropDetail: any });
 
-  const projectName = (route.params && (route.params as any).project?.projectName) || 'Project';
-
-  const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'home', title: 'Home', params: route.params },
     { key: 'stacking', title: 'Stacking', params: route.params },
@@ -37,66 +31,44 @@ const Crops = () => {
 
   const Home = () => (
     <View style={styles.scene}>
-      <CropHome project={project} cropCode ={code} />
+      <CropHome project={project} cropCode ={cropDetail.code} />
     </View>
   );
 
   const Stacking = () => (
     <View style={styles.scene}>
-      <CropStacking project={project} cropCode ={code}/>
+      <CropStacking project={project} cropCode ={cropDetail.code}/>
     </View>
   );
 
   const Cultivation = () => (
     <View style={styles.scene}>
-      <CropCultivation project={project} cropCode ={code}/>
+      <CropCultivation project={project} cropCode ={cropDetail.code}/>
     </View>
   );
 
   const Harvest = () => (
     <View style={styles.scene}>
-      <Text>stack Screen</Text>
+      <CropHarvest project={project} cropCode ={cropDetail.code}/>
     </View>
   );
   const Protection = () => (
     <View style={styles.scene}>
-      <CropProtection project={project} cropCode ={code}/>
+      <CropProtection project={project} cropCode ={cropDetail.code}/>
     </View>
   );
 
   const Uproot = () => (
     <View style={styles.scene}>
-      <Text>stack Screen</Text>
+      <CropUproot project={project} cropCode ={cropDetail.code}/>
     </View>
   );
 
   const Nursery = () => (
     <View style={styles.scene}>
-       <CropNursery project={project} cropCode ={code}/>
+       <CropNursery project={project} cropCode ={cropDetail.code}/>
     </View>
   );
-
-
-  // const renderScene = ({ route }: { route: { key: string; title: string; params: any } }) => {
-  //   switch (route.key) {
-  //     case 'home':
-  //       return <CropHome projectInfo={route.params} />;
-  //     case 'stacking':
-  //       return <CropStacking projectInfo={route.params} />;
-  //     case 'cultivation':
-  //       return <CropCultivation projectInfo={route.params} />;
-  //     case 'harvest':
-  //       return <CropHarvest projectInfo={route.params} />;
-  //     case 'protection':
-  //       return <CropProtection projectInfo={route.params} />;
-  //     case 'uproot':
-  //       return <CropUproot projectInfo={route.params} />;
-  //     case 'nursery':
-  //       return <CropNursery projectInfo={route.params} />;
-  //     default:
-  //       return null;
-  //   }
-  // };
 
   const scenes = {
     home: Home,
@@ -106,33 +78,8 @@ const Crops = () => {
     protection: Protection,
     uproot: Uproot,
     nursery: Nursery
-    // positions: Positions,
-    // executed: Executed,
-    // pending: Pending,
-    // rejected: Rejected,
   };
 
-  const renderTabBar = (props: any) => (
-    <TabBar
-      {...props}
-      scrollEnabled={true} // ✅ Make tabs scrollable
-      indicatorStyle={styles.indicator}
-      style={styles.tabBar}
-      tabStyle={{ width: 'auto' }} // ✅ Allow dynamic width for each tab
-      renderLabel={({
-        route,
-        focused,
-      }: {
-        route: { key: string; title: string; params: any };
-        focused: boolean;
-        color: string;
-      }) => (
-        <Text style={[styles.label, focused && styles.labelFocused]}>
-          {route.title}
-        </Text>
-      )}
-    />
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -141,7 +88,7 @@ const Crops = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#388e3c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Crops</Text>
+        <Text style={styles.headerTitle}>{cropDetail?.cropName}</Text>
       </View>
       <CustomTabView
         routes={routes}

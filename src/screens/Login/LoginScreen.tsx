@@ -131,7 +131,7 @@ const LoginScreen = () => {
                                     <Text style={{ color: 'red', marginBottom: 8 }}>{apiError}</Text>
                                 )}
                                 {/* Or sign in with */}
-                                <Text style={styles.orText}>or sign in with</Text>
+                                {/* <Text style={styles.orText}>or sign in with</Text>
                                 <View style={styles.socialRow}>
                                     <TouchableOpacity>
                                         <Image source={{ uri: 'https://img.icons8.com/color/48/000000/google-logo.png' }} style={styles.socialIcon} />
@@ -142,7 +142,7 @@ const LoginScreen = () => {
                                     <TouchableOpacity>
                                         <Image source={{ uri: 'https://img.icons8.com/color/48/000000/instagram-new.png' }} style={styles.socialIcon} />
                                     </TouchableOpacity>
-                                </View>
+                                </View> */}
                                 {/* Sign Up Link */}
                                 <View style={styles.signupRow}>
                                     <Text style={styles.signupText}>Don't have an account? </Text>

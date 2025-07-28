@@ -103,7 +103,6 @@ const Pumps = () => {
             pumpWaterOutput: values.pumpWaterOutput,
             pumpElectricPhase: values.pumpElectricPhase,
         };
-        console.log('PumpData', PumpData);
         const addPump = async () => {
             try {
                 const res = await PumpsService.addPump(PumpData);
@@ -204,7 +203,7 @@ const Pumps = () => {
             <Text style={styles.field}>Power: {item.pumpHorsePower}</Text>
             <Text style={styles.field}>Output: {item.pumpWaterOutput}</Text>
             <Text style={styles.field}>Phase: {item.pumpElectricPhase}</Text>
-            <Text style={styles.field}>Venturies: {item.venturiCodes}</Text>
+            <Text style={styles.field}>Venturies: {item.venturiCount}</Text>
         </View>
     );
 
@@ -217,8 +216,6 @@ const Pumps = () => {
         const mapVenturistoPump = async () => {
             try {
                 const response = await PumpsService.mapVenturiesToPump(requestBody);
-                // setPumps(response.result || []);
-                console.log("response", response)
             } catch (error) {
                 console.log("error", error)
             }
@@ -226,6 +223,7 @@ const Pumps = () => {
         mapVenturistoPump();
         setModalVisible(false);
         setIsEditCase(false);
+        setReloadList(!reloadList)
     }
 
     return (
