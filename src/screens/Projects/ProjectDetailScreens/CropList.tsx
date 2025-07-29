@@ -129,8 +129,8 @@ const CropList = ({ }) => {
             seedCompanyLogoImageAvailable: false,
         }
         const addCrop = async () => {
-            try {           
-                const response = await CropService.addcrop(cropData);            
+            try {
+                const response = await CropService.addcrop(cropData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
                     showToast(toastType, "Add Crop", response.result.successMessage);
@@ -148,7 +148,7 @@ const CropList = ({ }) => {
 
     const handleUpdatePlot = async (values: any) => {
         const cropData = {
-            code : values.code,
+            code: values.code,
             projectId: values.projectId,
             plotId: values.plotId,
             cropId: values.cropId,
@@ -177,8 +177,8 @@ const CropList = ({ }) => {
                 else {
                     showToast(toastType, "Update Crop", response.result.errorMessage);
                 }
-            } catch (error:any) {
-                 showToast('error', "Update Crop", error.errorMessage);
+            } catch (error: any) {
+                showToast('error', "Update Crop", error.errorMessage);
             }
         };
         updateCrop();
@@ -211,6 +211,7 @@ const CropList = ({ }) => {
             try {
                 const response = await CropService.getcropsbyprojectid(project.projectId);
                 setCrops(response.result || []);
+                // console.log(response.result, "ALL Project Crops")
                 setIsLoading(false);
             } catch (error) {
             }
@@ -259,7 +260,7 @@ const CropList = ({ }) => {
             listItems.push({ label: 'Bed Count', value: item.bedCount });
         }
         if (item.plantationNurseryRaised) {
-            listItems.push({ label: 'Nursery Raised', value: AppFunctions.formatDate(item?.plantationNurseryRaisedDate)  });
+            listItems.push({ label: 'Nursery Raised', value: AppFunctions.formatDate(item?.plantationNurseryRaisedDate) });
         }
 
         //item.plantationNurseryRaisedDate
@@ -284,8 +285,10 @@ const CropList = ({ }) => {
         return listItems
     }
 
+    //
+
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropScreen", { project: project, cropDetail: item })}>
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropDetail", { project: project, cropDetail: item })} >
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>
@@ -343,12 +346,12 @@ const CropList = ({ }) => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Crops</Text>
-            </View>
+            </View> */}
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Crop</Text>
@@ -460,6 +463,7 @@ const CropList = ({ }) => {
                                                 <Text style={styles.checkboxLabel}>Nursery Raised</Text>
                                             </View>
 
+
                                             {values.plantationNurseryRaised &&
                                                 <View style={styles.dropdownRow}>
                                                     <DateControl
@@ -473,6 +477,19 @@ const CropList = ({ }) => {
                                                     />
                                                 </View>
                                             }
+                                            <View style={styles.checkboxRow}>
+                                                <TouchableOpacity
+                                                    style={styles.checkbox}
+                                                    onPress={() => setFieldValue('plantationNurseryRaised', !values.plantationNurseryRaised)}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        size={22}
+                                                        color="#388e3c"
+                                                    />
+                                                </TouchableOpacity>
+                                                <Text style={styles.checkboxLabel}>Protection Required</Text>
+                                            </View>
                                             <AppTextInput
                                                 placeholder="Planting Crop Company"
                                                 maxLength={45}
@@ -757,11 +774,11 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontWeight: 'bold',
         color: '#333',
-        fontSize:13
+        fontSize: 13
     },
     fieldValue: {
         color: '#555',
-        fontSize:11
+        fontSize: 11
     },
     accordionToggle: {
         color: '#388e3c',

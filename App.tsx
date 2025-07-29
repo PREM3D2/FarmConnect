@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, SafeAreaView } from 'react-native';
+import { StatusBar, SafeAreaView, useWindowDimensions, Dimensions } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './src/navigation/AuthStack';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -12,15 +12,16 @@ import toastConfig from './src/components/ToastConfig';
 
 const AppContent = () => {
   const token = useSelector((state: RootState) => state.auth.token);
-  const isLoggedIn = !!token; // directly use
-  
+  const isLoggedIn = !!token;
+
+  const height = Dimensions.get('window').height ;
   return (
-    <SafeAreaView style={{ flex: 1, marginTop: 40 }}>
+    <SafeAreaView style={{ flex: 1, marginTop: height*0.02 }}>
       <NavigationContainer>
         <StatusBar barStyle="dark-content" />
         {isLoggedIn ? (
           <AppHeaderLayout>
-            <MainStack/>
+            <MainStack />
           </AppHeaderLayout>
         ) : (
           <AuthStack />

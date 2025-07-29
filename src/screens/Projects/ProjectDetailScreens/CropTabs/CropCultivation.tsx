@@ -119,7 +119,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
 
     const handleCultivationExpectedDateUpdate = async (values: any) => {
         const cultivationData = {
-            plotCropId: cropDetail?.cropId,
+            plotCropId: cropCode,
             expectedDate: values.cultivationExpectedDate,
         };
 
@@ -136,7 +136,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
     const handleCultivationActualDateUpdate = async (values: any) => {
         const cultivationData = {
             code: values.code,
-            plotCropId: cropDetail?.cropId,
+            plotCropId: cropCode,
             actualDate: values.cultivationActualDate,
             actualDateNotes: values.cultivationActualDateNotes,
         };
@@ -225,7 +225,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
             {!cropDetail?.cultivationStatus &&
                 <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                     <Icon name="plus-circle" size={24} color='#388e3c' />
-                    <Text style={styles.addBtnText}>Add Protection</Text>
+                    <Text style={styles.addBtnText}>Add Cultivation</Text>
                 </TouchableOpacity>}
 
             {cropDetail?.cultivationStatus &&
@@ -258,7 +258,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropCultivation' : 'Add CropCultivation'}</Text>
+                            <Text style={styles.modalTitle}>{editCropProtection ? 'Edit Cultivation' : 'Add Cultivation'}</Text>
                             <Formik
                                 initialValues={{
                                     cultivationExpectedDate: editCropProtection?.cultivationExpectedDate || '',

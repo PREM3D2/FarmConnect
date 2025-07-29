@@ -18,7 +18,7 @@ export type Project = {
 };
 
 export type ProjectStackParamList = {
-    ProjectList: undefined;
+    ProjectListScreen: undefined;
     ProjectDetailScreen: { project: Project };
     LandScreen: undefined;
     PumpScreen: undefined;

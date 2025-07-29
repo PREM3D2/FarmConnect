@@ -241,12 +241,12 @@ const Land = ({ }) => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Lands</Text>
-            </View>
+            </View> */}
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Land</Text>

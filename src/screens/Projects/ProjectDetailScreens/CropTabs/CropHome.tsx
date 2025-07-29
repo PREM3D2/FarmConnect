@@ -33,11 +33,11 @@ const plantationOptions = [
     { label: 'Single-line', value: 'single-line' },
 ];
 
-const cropTypeDropdown = [
-    { label: 'Main', value: 'main' },
-    { label: 'Protection', value: 'protection' },
-    { label: 'Border', value: 'border' },
-];
+// const cropTypeDropdown = [
+//     { label: 'Main', value: 'main' },
+//     { label: 'Protection', value: 'protection' },
+//     { label: 'Border', value: 'border' },
+// ];
 
 type CropDetail = {
     code: number;

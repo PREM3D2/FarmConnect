@@ -118,33 +118,42 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
     };
 
     const handleAddEditProtection = async (values: any) => {
-        const protectionData = {
-            code: values.code,
-            plotCropId: cropDetail?.cropId,
+        const protectionAddData = {
+            plotCropId: cropCode,
             protectionName: values.protectionName,
             protectionDeployExpectedDate: values.protectionDeployExpectedDate,
         };
 
-        const addPlot = async () => {
+        const protectionEditData = {
+            code: values.code,
+            plotCropId: cropCode,
+            protectionName: values.protectionName,
+            protectionDeployExpectedDate: values.protectionDeployExpectedDate,
+        };
+
+
+        const addEditProtection = async () => {
             try {
-                const response = await CropService.addCropProtectionDate(protectionData);
+                const response = editCropProtection === null ? await CropService.addCropProtectionDate(protectionAddData) : await CropService.addCropProtectionDate(protectionEditData)
+                console.log(response)
             } catch (error) {
+                console.log(error, "err")
             }
         };
-        addPlot();
+        addEditProtection();
         setReloadList(!reloadList);
     }
 
     const handleUpdatePlot = async (values: any) => {
         const protectionData = {
             code: values.code,
-            plotCropId: cropDetail?.cropId,
+            plotCropId: cropCode,
             protectionDeployActualDate: values.protectionDeployActualDate,
             protectionDeployActualDateNotes: values.protectionDeployActualDateNotes,
         };
         const updatePlot = async () => {
             try {
-               const response = await CropService.updateProtectionActualDate(protectionData);
+                const response = await CropService.updateProtectionActualDate(protectionData);
                 showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
             } catch (error) {
                 showToast('error', 'Actual Protection Date', 'Error');
@@ -179,14 +188,15 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
     const renderProtectionItem = ({ item }: { item: CropProtectionInfo }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
+                {/* <Text style={styles.landName}>{cropDetail?.plotCropName}</Text> */}
                 <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => openEditModal(item)}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
-                        <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                    </TouchableOpacity>
+                    {item.protectionDeployActualDate === null && <>
+                        <TouchableOpacity onPress={() => openEditModal(item)}>
+                            <Icon name="pencil" size={22} color="#388e3c" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item)}>
+                            <MaterialCommunityIcons name="delete" size={22} color="#900" />
+                        </TouchableOpacity></>}
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => openChangeStatusModal(item)}>
                         <MaterialCommunityIcons name="tag" size={22} color="#388e3c" />
                     </TouchableOpacity>
@@ -252,7 +262,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.modalTitle}>{editCropProtection ? 'Edit CropProtection' : 'Add CropProtection'}</Text>
+                            <Text style={styles.modalTitle}>{isChangeStatus ? 'Change Status' : (editCropProtection ? 'Edit CropProtection' : 'Add CropProtection')}</Text>
                             <Formik
                                 initialValues={{
                                     protectionDeployExpectedDate: editCropProtection?.protectionDeployExpectedDate || '',
@@ -365,7 +375,7 @@ const styles = StyleSheet.create({
     },
     cardHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         marginBottom: 8,
     },

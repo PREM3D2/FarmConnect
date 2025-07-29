@@ -1,127 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import LandService from '../../../../services/LandService';
-import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
-import toastConfig from '../../../../components/ToastConfig';
 import { showToast } from '../../../../components/ShowToast';
 
-
-const riserSides = [
-    { label: 'Length', value: 'length' },
-    { label: 'Width', value: 'width' },
-];
-
-type Soil = {
-    code: 1,
-    soilColor: string,
-    soilDesc: string
-}
-//need to update soilColor dropdown from API
-const soilColor = [
-    { label: 'Red', value: 1 },
-    { label: 'Black', value: 2 },
-];
-
-type Plot = {
-    code: number;
-    projectId: number;
-    projectName: string;
-    plotName: string;
-    plotLength: number;
-    plotWidth: number;
-    isRiser: boolean;
-    riserCalMethod: string;
-    plotRiserDistance: number;
-    plotBedActualCount: number;
-    soilId: number;
-    soilColor: string;
-    plotTotalArea: number;
-    plotBedEstimateCount: number;
-};
 
 const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editLand, setEditLand] = useState<any>(null);
-    const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
-    const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
 
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
     };
 
-
-    const openEditModal = (land: any) => {
-        setEditLand(land);
-        setModalVisible(true);
-    };
-
-    const handleDelete = (plot: Plot) => {
-        const deletePlot = async () => {
-            try {
-                const response = await LandService.deletePlot(plot.code);
-            } catch (error) {
-            }
-        };
-        deletePlot();
-        setReloadList(!reloadList);
-    };
-
-    const confirmDelete = (plot: Plot) => {
-        Alert.alert(
-            'Delete CropStacking',
-            `Do you want to Delete the CropStacking ${plot.plotName}?`,
-            [
-                {
-                    text: 'No',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes',
-                    onPress: () => handleDelete(plot),
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: true }
-        );
-    };
-
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            // projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-        };
-        const addPlot = async () => {
-            try {
-                await LandService.addPlot(plotData);
-            } catch (error) {
-            }
-        };
-        addPlot();
-        setReloadList(!reloadList);
-    }
-
     const handleUpdateStackingDate = async (values: any) => {
         const stackingStatusData = {
-            plotCropId: values.code,
+            plotCropId: cropCode,
             stackingStatus: true,
             stackingDate: values.stackingDate,
         };
@@ -143,16 +46,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
         setReloadList(!reloadList);
     }
 
-    useEffect(() => {
-        const fetchSoilData = async () => {
-            try {
-                const response = await LandService.getAllSoils();
-                setSoilDataOptions([...response.result || []]);
-            } catch (error) {
-            }
-        };
-        fetchSoilData();
-    }, []);
 
     useEffect(() => {
         const fetchCropDetail = async () => {
@@ -181,14 +74,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
             {cropDetail?.stackingStatus
                 &&
                 <View style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
-                        <View style={styles.cardActions}>
-                            <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
-                                <Icon name="pencil" size={22} color="#388e3c" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
                     <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking Date: {AppFunctions.formatDate(cropDetail?.stackingDate)}</Text>
                     <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Stacking is Installed"</Text>
                 </View>
@@ -206,16 +91,11 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                             <Formik
                                 initialValues={{
                                     stackingDate: editLand?.stackingDate || '',
-                                    code: cropDetail?.cropId,
+                                    code: cropDetail?.code,
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={(values, { resetForm }) => {
-                                    // if (!editLand) {
-                                    //     handleAddPlot(values);
-                                    // }
-                                    // else {
                                     handleUpdateStackingDate(values);
-                                    // }
                                     setModalVisible(false);
                                     resetForm();
                                 }}

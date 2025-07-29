@@ -1,52 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import LandService from '../../../../services/LandService';
-import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
-import toastConfig from '../../../../components/ToastConfig';
 import { showToast } from '../../../../components/ShowToast';
 
-
-const riserSides = [
-    { label: 'Length', value: 'length' },
-    { label: 'Width', value: 'width' },
-];
-
-type Soil = {
-    code: 1,
-    soilColor: string,
-    soilDesc: string
-}
-//need to update soilColor dropdown from API
-const soilColor = [
-    { label: 'Red', value: 1 },
-    { label: 'Black', value: 2 },
-];
-
-type Plot = {
-    code: number;
-    projectId: number;
-    projectName: string;
-    plotName: string;
-    plotLength: number;
-    plotWidth: number;
-    isRiser: boolean;
-    riserCalMethod: string;
-    plotRiserDistance: number;
-    plotBedActualCount: number;
-    soilId: number;
-    soilColor: string;
-    plotTotalArea: number;
-    plotBedEstimateCount: number;
-};
 
 const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -59,14 +22,9 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
         setModalVisible(true);
     };
 
-    const openEditModal = (land: any) => {
-        setEditLand(land);
-        setModalVisible(true);
-    };
-
     const handleUpdateNurseryDate = async (values: any) => {
         const nurseryStatusDate = {
-            plotCropId: values.code,
+            plotCropId: cropCode,
             plantationNurseryRaised: true,
             plantationNurseryRaisedDate: values.plantationNurseryRaisedDate,
         };
@@ -115,15 +73,7 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
             {cropDetail?.plantationNurseryRaised
                 &&
                 <View style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
-                        <View style={styles.cardActions}>
-                            <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
-                                <Icon name="pencil" size={22} color="#388e3c" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {AppFunctions.formatDate(cropDetail?.plantationNurseryRaised)}</Text>
+                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised Date: {AppFunctions.formatDate(cropDetail?.plantationNurseryRaised)}</Text>
                     <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Nursery is Raised"</Text>
                 </View>
             }

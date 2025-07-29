@@ -52,9 +52,11 @@ const Pumps = () => {
     const [reloadList, setReloadList] = useState(false);
     const [isEditCase, setIsEditCase] = useState(false);
     const [isMapVenturi, setIsMapVenturi] = useState(false);
+    const [selectedVenturies, setSelectedVenturies] = useState<any>([])
     // const [selectedLinkedPump, setSelectedLinkedPump  ] = useState<Pump | null>(null);
 
     const openAddModal = () => {
+        setIsEditCase(false);
         setEditPumps(null);
         setModalVisible(true);
     };
@@ -94,6 +96,22 @@ const Pumps = () => {
         );
     };
 
+    const getPumpDetailbyPumpId = (item: any) => {
+        const getPumpCodes = async () => {
+            try {
+                const response = await PumpsService.getPumpbyPumpid(item.code);
+                const venturies = response.venturiCodes.map((item: any) => { return item.toString() })
+                setSelectedVenturies([...venturies])
+                setIsEditCase(false);
+                setIsMapVenturi(true);
+                openEditModal(item);
+            }
+            catch (error) {
+            }
+        }
+        getPumpCodes();
+    }
+
     const handleAddPump = async (values: any) => {
         const PumpData = {
             projectId: project?.projectId,
@@ -123,14 +141,15 @@ const Pumps = () => {
             pumpElectricPhase: values.pumpElectricPhase,
             code: editPumps?.code,
         };
-        const updatePump = async () => {
+        const updatePumpData = async () => {
             try {
-                await PumpsService.updatePump(PumpData);
-                setIsEditCase(false)
+                const response = await PumpsService.updatePump(PumpData);
+
             } catch (error) {
+
             }
         };
-        updatePump();
+        updatePumpData();
 
         setReloadList(!reloadList);
     }
@@ -159,10 +178,8 @@ const Pumps = () => {
             }
         };
         fetchPumps();
-        
-    }, [reloadList]);
 
-    const navigation = useNavigation();
+    }, [reloadList]);
 
     const validationSchema = Yup.object().shape({
         pumpName: Yup.string().max(100).required('Pump name is required'),
@@ -190,9 +207,7 @@ const Pumps = () => {
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
                     </TouchableOpacity>
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => {
-                        openEditModal(item);
-                        setIsMapVenturi(true);
-                        setIsEditCase(false)
+                        getPumpDetailbyPumpId(item);
                     }}>
                         <MaterialCommunityIcons name="link" size={26} color="#388e3c" />
                     </TouchableOpacity>
@@ -206,10 +221,9 @@ const Pumps = () => {
     );
 
     const handleSelectedTags = (selectedTags: any) => {
-
         const requestBody = {
             code: editPumps?.code,
-            venturiCodes: selectedTags.map((tag:string) => {return Number(tag)})
+            venturiCodes: selectedTags.map((tag: string) => { return Number(tag) })
         }
         const mapVenturistoPump = async () => {
             try {
@@ -225,17 +239,11 @@ const Pumps = () => {
 
     return (
         <View style={{ flex: 1 }}>
-             {isLoading && (
+            {isLoading && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Pumps</Text>
-            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Pump</Text>
@@ -258,7 +266,7 @@ const Pumps = () => {
                         <View style={styles.modalContent}>
                             <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
                                 <PaperProvider>
-                                    <TagCompoent label ='Venturi' data={venturis.map((vent) => { return { code: vent.code.toString(), label: vent.venturiName } })} handleSubmit={handleSelectedTags} existingTags={["1","2"]} handleCancel={() => setModalVisible(false)} />
+                                    <TagCompoent label='Venturi' data={venturis.map((vent) => { return { code: vent.code.toString(), label: vent.venturiName } })} handleSubmit={handleSelectedTags} existingTags={selectedVenturies} handleCancel={() => setModalVisible(false)} />
                                 </PaperProvider>
                             </ScrollView>
                         </View>)

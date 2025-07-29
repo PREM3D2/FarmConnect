@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -19,7 +19,7 @@ const Crops = () => {
   const { project } = (route.params as { project: Project });
   const { cropDetail } = (route.params as { cropDetail: any });
 
-  const [routes] = useState([
+  const [routes , setRoutes] = useState([
     { key: 'home', title: 'Home', params: route.params },
     { key: 'stacking', title: 'Stacking', params: route.params },
     { key: 'nursery', title: 'Nursery', params: route.params },
@@ -80,16 +80,22 @@ const Crops = () => {
     nursery: Nursery
   };
 
+  useEffect(() => {
+    if(cropDetail.plantation === "sowing"){
+
+    }
+  },[])
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header with Back Button and Project Name */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#388e3c" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{cropDetail?.cropName}</Text>
-      </View>
+      </View> */}
       <CustomTabView
         routes={routes}
         scenes={scenes}

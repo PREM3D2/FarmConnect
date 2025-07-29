@@ -33,12 +33,14 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
 
     const handleChangeUprootActualData = async (values: any) => {
         const harvestData = {
-            plotCropId: cropDetail?.cropId,
+            plotCropId: cropCode,
             actualDate: values.actualDate,
             actualDateNotes: values.actualDateNotes,
             cropFailure: values.cropFailure,
             cropFailureReasonId: values.cropFailureReasonId
         };
+
+        console.log("harvestData", harvestData)
 
         const addPlot = async () => {
             try {
@@ -52,7 +54,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
 
     const handleChangeUprootExpectedData = async (values: any) => {
         const harvestData = {
-            plotCropId: cropDetail?.cropId,
+            plotCropId: cropCode,
             expectedDate: values.expectedDate,
         };
 
@@ -242,9 +244,10 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
     return (
         <View style={{ flex: 1, marginTop: 10 }}>
             <Card style={styles.card}>
-                <TouchableOpacity onPress={() => openEditModal(cropDetail, false)} style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
-                    <Icon name="pencil" size={22} color="#388e3c" />
-                </TouchableOpacity>
+                {cropDetail?.uprootingActualDate === null &&
+                    <TouchableOpacity onPress={() => openEditModal(cropDetail, false)} style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
+                        <Icon name="pencil" size={22} color="#388e3c" />
+                    </TouchableOpacity>}
                 <Card.Content>
                     <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
                     <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.uprootingExpectedDate)}</Text>
@@ -257,8 +260,8 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 <Card.Content>
                     <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
                     <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.uprootingActualDate)}</Text>
-                    <Text style={styles.subItem}>- Actual Date Notes: {cropDetail?.uprootingActualDateNotes}</Text>
-                    <Text style={styles.subItem}>- Crop Failure: {cropDetail?.cropFailure ? "True" : "False"}</Text>
+                    <Text style={styles.subItem}>- Notes: {cropDetail?.uprootingActualDateNotes}</Text>
+                    <Text style={styles.subItem}>- Status: {cropDetail?.cropFailure ? <Text style={{ color: 'red' }}> Failure </Text> : <Text style={{ color: 'green' }}> Success </Text>}</Text>
                     {cropDetail?.cropFailure && <Text style={styles.subItem}>- Crop Failure Reasons: {cropDetail?.cropFailureReason}</Text>}
                 </Card.Content>
             </Card>
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         padding: 16,
-        marginHorizontal:10,
+        marginHorizontal: 10,
         marginBottom: 16,
         elevation: 2,
     },

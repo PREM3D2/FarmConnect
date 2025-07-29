@@ -28,14 +28,15 @@ const PumpService = {
   getPumpbyPumpid: async (PumpId: string) => {
     try {
       const token = getJwtToken();
-      const response = await axios.get(`${API_BASE_URL}/Pump/edit/${PumpId}`,
+      const response = await axios.get(`${API_BASE_URL}/pump/edit/${PumpId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      return response.data;
+      console.log("API", response.data.result)
+      return response.data.result
     } catch (error) {
       throw error;
     }
@@ -44,7 +45,7 @@ const PumpService = {
   addPump: async (PumpData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.post(`${API_BASE_URL}/Pump`, PumpData,
+      const response = await axios.post(`${API_BASE_URL}/pump`, PumpData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,7 +60,7 @@ const PumpService = {
   updatePump: async (projectData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.put(`${API_BASE_URL}/Pump`, projectData,
+      const response = await axios.put(`${API_BASE_URL}/pump`, projectData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -92,7 +93,7 @@ const PumpService = {
   deletePump: async (PumpId:any) => {
    try {
       const bearerToken = getJwtToken();
-      const response = await axios.delete(`${API_BASE_URL}/Pump`, {
+      const response = await axios.delete(`${API_BASE_URL}/pump`, {
         headers: {
           'Authorization': `Bearer ${bearerToken}`,
         },
