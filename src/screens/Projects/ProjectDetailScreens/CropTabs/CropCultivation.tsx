@@ -122,14 +122,11 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
             plotCropId: cropDetail?.cropId,
             expectedDate: values.cultivationExpectedDate,
         };
-        console.log("protectionData", cultivationData)
 
         const addPlot = async () => {
             try {
                 const response = await CropService.updateCultivationExpectedDate(cultivationData);
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -146,7 +143,6 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
         const updatePlot = async () => {
             try {
                 const response = await CropService.updateCultivationActualDate(cultivationData);
-                console.log(response, "response")
                 showToast('success', 'Actual Cultivation Date', 'Actual Cultivation has been added Successfully');
             } catch (error) {
                 showToast('error', 'Actual Cultivation Date', 'Error');
@@ -162,7 +158,6 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchSoilData();
@@ -173,7 +168,6 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                console.log(response.result, "res")
             } catch (error) {
             }
         };
@@ -361,6 +355,7 @@ const styles = StyleSheet.create({
         padding: 16,
         marginBottom: 16,
         elevation: 2,
+        margin: 10,
     },
     cardHeader: {
         flexDirection: 'row',

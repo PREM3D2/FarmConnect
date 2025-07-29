@@ -37,9 +37,9 @@ const ProjectDetailScreen = ({ }) => {
             { key: 'img2', label: 'Pumps', img: require('../../../assets/images/Pump_Image.png'), route: 'PumpScreen' },
             { key: 'img3', label: 'Venturis', img: require('../../../assets/images/Venturi_Image.png'), route: 'VenturiScreen' },
             { key: 'img4', label: 'Crops', img: require('../../../assets/images/Crop_Image.png'), route: 'CropListScreen' },
-            { key: 'img5', label: 'Schedules', img: require('../../../assets/images/Schedule_Image.png'), route: 'LandScreen' },
+            { key: 'img5', label: 'Schedules', img: require('../../../assets/images/Schedule_Image.png'), route: 'ScheduleScreen' },
           ].map((item) => (
-            <View style={styles.gridItem}  key={item.key}>
+            <View style={styles.gridItem} key={item.key}>
               <TouchableOpacity style={styles.imageWrapper} onPress={() => navigation.navigate({ name: item.route as any, params: { project: project } })}>
                 <View style={styles.imageBox}>
                   <Image source={item.img} style={styles.image} />
@@ -58,7 +58,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent:'center',
     paddingTop: 16,
     paddingBottom: 8,
     paddingHorizontal: 16,

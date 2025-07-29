@@ -106,9 +106,7 @@ const Pumps = () => {
         const addPump = async () => {
             try {
                 const res = await PumpsService.addPump(PumpData);
-                console.log('Pump added successfully', res);
             } catch (error) {
-                console.error('Error adding pump:', error);
             }
         };
         addPump();
@@ -217,7 +215,6 @@ const Pumps = () => {
             try {
                 const response = await PumpsService.mapVenturiesToPump(requestBody);
             } catch (error) {
-                console.log("error", error)
             }
         };
         mapVenturistoPump();

@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     card: {
+        margin: 10,
         backgroundColor: '#fff',
         borderRadius: 10,
         padding: 16,

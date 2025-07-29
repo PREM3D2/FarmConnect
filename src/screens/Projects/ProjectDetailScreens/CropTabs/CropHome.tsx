@@ -276,9 +276,9 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
 
                         <Divider style={styles.divider} />
 
-                        <Text style={styles.row}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {formatDate(cropDetail?.plantationNurseryRaised, true)}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {formatDate(cropDetail?.plantationNurseryRaised)}</Text>
                         <Text style={styles.row}><MaterialCommunityIcons name="water" size={18} color="#2196F3" />  Irrigation: {cropDetail?.irrigationDrip}</Text>
-                        <Text style={styles.row}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking: {formatDate(cropDetail?.stackingDate, true)}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking: {formatDate(cropDetail?.stackingDate)}</Text>
 
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="shield" size={18} color="#FF9800" />  Protections:</Text>
@@ -293,15 +293,15 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
                         <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestStartExpectedDate)}</Text>
-                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestStartActualDate, true)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestStartActualDate)}</Text>
 
                         <Divider style={styles.divider} />
-                        <Text style={styles.row}><MaterialCommunityIcons name="chart-bar" size={18} color="#03A9F4" />  Yield Interval: {cropDetail?.harvestIntervalCountExpected} | {cropDetail?.uprootingActualDate}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="chart-bar" size={18} color="#03A9F4" />  Yield Interval: {cropDetail?.harvestIntervalCountExpected} | {formatDate(cropDetail?.uprootingActualDate)}</Text>
 
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="calendar-end" size={18} color="#E91E63" />  Harvest End:</Text>
                         <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
-                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestEndActualDate, true)}</Text>
+                        <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestEndActualDate)}</Text>
 
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>

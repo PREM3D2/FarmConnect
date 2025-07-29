@@ -135,7 +135,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                 else {
                     showToast(toastType, "Stacking Status", response.result.errorMessage);
                 }
-            } catch (error:any) {
+            } catch (error: any) {
                 showToast('error', "Stacking Status", error.message);
             }
         };
@@ -149,7 +149,6 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchSoilData();
@@ -215,7 +214,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                                     //     handleAddPlot(values);
                                     // }
                                     // else {
-                                        handleUpdateStackingDate(values);
+                                    handleUpdateStackingDate(values);
                                     // }
                                     setModalVisible(false);
                                     resetForm();
@@ -274,6 +273,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         padding: 16,
+        margin: 10,
         marginBottom: 16,
         elevation: 2,
     },

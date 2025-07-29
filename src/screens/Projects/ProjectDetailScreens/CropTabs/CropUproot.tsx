@@ -43,9 +43,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
         const addPlot = async () => {
             try {
                 const response = await CropService.updateUprootActualDate(harvestData)
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -61,9 +59,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
         const addPlot = async () => {
             try {
                 const response = await CropService.updateUprootExpectedDate(harvestData)
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -127,7 +123,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <>
-                            <Text>{JSON.stringify(errors, null, 2)} </Text>
+                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
 
                             <DateControl
                                 value={values.expectedDate}
@@ -244,22 +240,22 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
     }
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, marginTop: 10 }}>
             <Card style={styles.card}>
+                <TouchableOpacity onPress={() => openEditModal(cropDetail, false)} style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
+                    <Icon name="pencil" size={22} color="#388e3c" />
+                </TouchableOpacity>
                 <Card.Content>
-                    <TouchableOpacity onPress={() => openEditModal(cropDetail, false)}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Uproot:</Text>
+                    <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
                     <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.uprootingExpectedDate)}</Text>
                 </Card.Content>
             </Card>
             <Card style={styles.card}>
+                <TouchableOpacity onPress={() => openEditModal(cropDetail, true)} style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
+                    <Icon name="pencil" size={22} color="#388e3c" />
+                </TouchableOpacity>
                 <Card.Content>
-                    <TouchableOpacity onPress={() => openEditModal(cropDetail, true)}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Uproot:</Text>
+                    <Text style={styles.section}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
                     <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.uprootingActualDate)}</Text>
                     <Text style={styles.subItem}>- Actual Date Notes: {cropDetail?.uprootingActualDateNotes}</Text>
                     <Text style={styles.subItem}>- Crop Failure: {cropDetail?.cropFailure ? "True" : "False"}</Text>
@@ -304,6 +300,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         padding: 16,
+        marginHorizontal:10,
         marginBottom: 16,
         elevation: 2,
     },

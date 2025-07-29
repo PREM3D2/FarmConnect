@@ -14,6 +14,7 @@ import DateControl from '../../../components/DateControl';
 import { Plot } from './Land';
 import { ActivityIndicator } from 'react-native-paper';
 import { showToast } from '../../../components/ShowToast';
+import { AppFunctions } from '../../../Helpers/AppFunctions';
 
 
 const CropCultivaionTypeOptions = [
@@ -190,7 +191,6 @@ const CropList = ({ }) => {
                 const response = await LandService.getplotsbyprojectid(project.projectId);
                 setLandOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         const fetchCropOptions = async () => {
@@ -198,7 +198,6 @@ const CropList = ({ }) => {
                 const response = await CropService.getallCropOptions();
                 setCropOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchCropOptions();
@@ -260,25 +259,27 @@ const CropList = ({ }) => {
             listItems.push({ label: 'Bed Count', value: item.bedCount });
         }
         if (item.plantationNurseryRaised) {
-            listItems.push({ label: 'Nursery Raised', value: item.plantationNurseryRaisedDate });
+            listItems.push({ label: 'Nursery Raised', value: AppFunctions.formatDate(item?.plantationNurseryRaisedDate)  });
         }
+
+        //item.plantationNurseryRaisedDate
         listItems.push({ label: 'Irrigation', value: irrigationTypes.join(', ') });
         if (item.stackingStatus) {
-            listItems.push({ label: 'Stacking', value: item.stackingDate });
+            listItems.push({ label: 'Stacking', value: AppFunctions.formatDate(item?.stackingDate) });
         }
         if (item.protectionsRequired) {
             listItems.push({ label: 'Protections', value: `Required-${item.protectionsRequiredCount} | Deployed-${item.protectionsDeployedCount}` });
         }
         if (item.cultivationStatus) {
-            listItems.push({ label: 'Cultivation', value: `Expected-${item.cultivationExpectedDate} | Actual-${item.cultivationActualDate}` });
+            listItems.push({ label: 'Cultivation', value: `Expected-${AppFunctions.formatDate(item?.cultivationExpectedDate)} | Actual-${AppFunctions.formatDate(item?.cultivationActualDate)}` });
         }
         if (item.harvestStartStatus) {
-            listItems.push({ label: 'Harvest Start', value: `Expected-${item.harvestStartExpectedDate} | Actual-${item.harvestStartActualDate}` });
+            listItems.push({ label: 'Harvest Start', value: `Expected-${AppFunctions.formatDate(item?.harvestStartExpectedDate)} | Actual-${AppFunctions.formatDate(item?.harvestStartActualDate)}` });
         }
         //To-do: Add Harvest Yield Expected and Interval Count
         if (item.harvestStartActualDate !== null && item.harvestStartActualDate !== '') {
             listItems.push({ label: 'Yield Interval', value: `Expected-${item.harvestIntervalCountExpected} | Actual-${item.harvestYieldKilosCollected}` });
-            listItems.push({ label: 'Harvest End', value: `Expected-${item.harvestEndExpectedDate} | Actual-${item.harvestEndActualDate}` });
+            listItems.push({ label: 'Harvest End', value: `Expected-${AppFunctions.formatDate(item?.harvestEndExpectedDate)} | Actual-${AppFunctions.formatDate(item?.harvestEndActualDate)}` });
         }
         return listItems
     }
@@ -408,7 +409,7 @@ const CropList = ({ }) => {
                                 return (
                                     <>
                                         <ScrollView contentContainerStyle={{ paddingBottom: 24, marginTop: 10 }} showsVerticalScrollIndicator={false}>
-                                            <Text>{JSON.stringify(errors, null, 2)} </Text>
+                                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
                                             <AppDropdown
                                                 required={true}
                                                 data={landOptions.map(land => ({ label: land.plotName, value: land.code }))}
@@ -756,9 +757,11 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontWeight: 'bold',
         color: '#333',
+        fontSize:13
     },
     fieldValue: {
         color: '#555',
+        fontSize:11
     },
     accordionToggle: {
         color: '#388e3c',

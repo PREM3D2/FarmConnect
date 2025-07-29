@@ -7,6 +7,7 @@ import Venturi from '../screens/Projects/ProjectDetailScreens/Venturi';
 import Crops from '../screens/Projects/ProjectDetailScreens/Crops';
 import Pumps from '../screens/Projects/ProjectDetailScreens/Pumps';
 import CropList from '../screens/Projects/ProjectDetailScreens/CropList';
+import Schedules from '../screens/Projects/ProjectDetailScreens/Schedules';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ const MainStack = () => (
     <Stack.Screen name="CropScreen" component={Crops} />
     <Stack.Screen name="CropListScreen" component={CropList} />
     <Stack.Screen name="PumpScreen" component={Pumps} />
+    <Stack.Screen name="ScheduleScreen" component={Schedules} />
   </Stack.Navigator>
 );
 

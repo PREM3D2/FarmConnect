@@ -128,29 +128,15 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             harvestingIntervalCountExpected: values?.harvestingIntervalCountExpected
         };
 
-        console.log("harvestStartData", harvestStartData)
-
-
         const harvestEndData = {
             plotCropId: cropDetail?.cropId,
             expectedDate: values?.expectedDate,
         }
 
-        console.log("harvestEndData", harvestEndData)
-
-        // if (currentSelectedForm === "HARVESTSTARTEXPECTED") {
-        //     (harvestData as any).harvestingYieldKilosExpected = values.harvestingYieldKilosExpected
-        //     (harvestData as any).harvestingIntervalCountExpected = values.harvestingIntervalCountExpected
-        // }
-
-
-
         const addPlot = async () => {
             try {
                 const response = currentSelectedForm === "HARVESTSTARTEXPECTED" ? await CropService.updateharveststartexpectedDate(harvestStartData) : await CropService.updateharvestendexpectedDate(harvestEndData)
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -164,16 +150,10 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             yieldCollectedKillosCount: values?.harvestingYieldKilosExpected,
         };
 
-        console.log("harvestStartData", harvestStartData)
-
-
-
         const addPlot = async () => {
             try {
                 const response = await CropService.addUpdateCropHarvest(harvestStartData)
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -190,9 +170,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         const addPlot = async () => {
             try {
                 const response = currentSelectedForm === "HARVESTSTARTACTUAL" ? await CropService.updateharveststartactualDate(harvestData) : await CropService.updateharvestendactualDate(harvestData)
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -210,7 +188,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         const updatePlot = async () => {
             try {
                 const response = await CropService.updateProtectionActualDate(protectionData);
-                console.log(response, "response")
                 showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
             } catch (error) {
                 showToast('error', 'Actual Protection Date', 'Error');
@@ -226,7 +203,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchSoilData();
@@ -237,7 +213,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                console.log(response.result, "res")
             } catch (error) {
             }
         };
@@ -310,7 +285,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                                 name="expectedDate"
                                 error={touched.expectedDate && errors.expectedDate ? errors.expectedDate : ''}
                                 touched={touched.expectedDate}
-                                placeholder="Harvest Start Expected Date"
+                                placeholder="Harvest Expected Date"
                                 required={true}
                             />{
                                 currentSelectedForm === "HARVESTSTARTEXPECTED" && <>
@@ -484,7 +459,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
     }
 
     return (
-        <View style={{ flex: 1, marginTop: 20 }}>
+        <View style={{ flex: 1, }}>
             <ScrollView>
                 <Card style={styles.card}>
                     <Card.Content>
@@ -496,7 +471,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                                 </TouchableOpacity> :
                                     <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                                         <Icon name="plus-circle" size={24} color='#388e3c' />
-                                        <Text style={styles.addBtnText}>Add Protection</Text>
+                                        <Text style={styles.addBtnText}>Add Harvest </Text>
                                     </TouchableOpacity>}
                             </View>
                         </View>
@@ -506,20 +481,39 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                     </Card.Content>
                 </Card>
                 <Card style={styles.card}>
+                    <Card.Content>
+                        <View style={{ flex: 1, flexDirection: 'row', }}>
+                            <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
+                            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                                {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTSTARTACTUAL')}>
+                                    <Icon name="pencil" size={22} color="#388e3c" />
+                                </TouchableOpacity> :
+                                    <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                        <Icon name="plus-circle" size={24} color='#388e3c' />
+                                        <Text style={styles.addBtnText}>Add Harvest </Text>
+                                    </TouchableOpacity>}
+                            </View>
+                        </View>
+                        <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.harvestStartActualDate)}</Text>
+                        {/* <Text style={styles.subItem}>- Harvest Expected(Kilos): {cropDetail?.harvestingYieldKilosExpected}</Text>
+                        <Text style={styles.subItem}>- Harvest Interval Count Expected: {cropDetail?.harvestingIntervalCountExpected}</Text> */}
+                    </Card.Content>
+                </Card>
+                {/* <Card style={styles.card}>
                     <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
                         {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTSTARTACTUAL')}>
                             <Icon name="pencil" size={22} color="#388e3c" />
                         </TouchableOpacity> :
                             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                                 <Icon name="plus-circle" size={24} color='#388e3c' />
-                                <Text style={styles.addBtnText}>Add Protection</Text>
+                                <Text style={styles.addBtnText}>Add Harvest </Text>
                             </TouchableOpacity>}
                     </View>
                     <Card.Content>
                         <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
                         <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.harvestStartActualDate)}</Text>
                     </Card.Content>
-                </Card>
+                </Card> */}
                 <Card style={styles.card}>
                     <Card.Content>
                         <View >
@@ -551,35 +545,42 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
 
                     </Card.Content>
                 </Card>
-                <Card style={styles.card}>
-                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
-                        {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
-                            <Icon name="pencil" size={22} color="#388e3c" />
-                        </TouchableOpacity> :
-                            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                                <Icon name="plus-circle" size={24} color='#388e3c' />
-                                <Text style={styles.addBtnText}>Add Protection</Text>
-                            </TouchableOpacity>}
-                    </View>
+                 <Card style={styles.card}>
                     <Card.Content>
-                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
-                        <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
+                        <View style={{ flex: 1, flexDirection: 'row', }}>
+                            <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                                {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
+                                    <Icon name="pencil" size={22} color="#388e3c" />
+                                </TouchableOpacity> :
+                                    <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                        <Icon name="plus-circle" size={24} color='#388e3c' />
+                                        <Text style={styles.addBtnText}>Add Harvest </Text>
+                                    </TouchableOpacity>}
+                            </View>
+                        </View>
+                       <Text style={styles.subItem}>- Expected: {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
+                        {/* <Text style={styles.subItem}>- Harvest Expected(Kilos): {cropDetail?.harvestingYieldKilosExpected}</Text>
+                        <Text style={styles.subItem}>- Harvest Interval Count Expected: {cropDetail?.harvestingIntervalCountExpected}</Text> */}
                     </Card.Content>
                 </Card>
                 <Card style={styles.card}>
-                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
-                        {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDACTUAL')}>
-                            <Icon name="pencil" size={22} color="#388e3c" />
-                        </TouchableOpacity> :
-                            <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-                                <Icon name="plus-circle" size={24} color='#388e3c' />
-                                <Text style={styles.addBtnText}>Add Protection</Text>
-                            </TouchableOpacity>}
-                    </View>
                     <Card.Content>
-                        <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                        <View style={{ flex: 1, flexDirection: 'row', }}>
+                           <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', padding: 10 }}>
+                                {cropDetail?.harvestStartExpectedDate !== null ? <TouchableOpacity onPress={() => openEditModal(cropDetail, 'HARVESTENDACTUAL')}>
+                                    <Icon name="pencil" size={22} color="#388e3c" />
+                                </TouchableOpacity> :
+                                    <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                        <Icon name="plus-circle" size={24} color='#388e3c' />
+                                        <Text style={styles.addBtnText}>Add Harvest </Text>
+                                    </TouchableOpacity>}
+                            </View>
+                        </View>
                         <Text style={styles.subItem}>- Actual: {AppFunctions.formatDate(cropDetail?.harvestEndActualDate)}</Text>
-
+                        {/* <Text style={styles.subItem}>- Harvest Expected(Kilos): {cropDetail?.harvestingYieldKilosExpected}</Text>
+                        <Text style={styles.subItem}>- Harvest Interval Count Expected: {cropDetail?.harvestingIntervalCountExpected}</Text> */}
                     </Card.Content>
                 </Card>
             </ScrollView>
@@ -605,7 +606,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
 const styles = StyleSheet.create({
 
     container: { padding: 16, marginVertical: 10 },
-    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10 },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10 ,  marginHorizontal:10},
     row: { fontSize: 16, marginVertical: 4 },
     section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
     subItem: { fontSize: 15, marginLeft: 20, marginVertical: 2 },
@@ -625,13 +626,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
-    // card: {
-    //     backgroundColor: '#fff',
-    //     borderRadius: 10,
-    //     padding: 16,
-    //     marginBottom: 16,
-    //     elevation: 2,
-    // },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',

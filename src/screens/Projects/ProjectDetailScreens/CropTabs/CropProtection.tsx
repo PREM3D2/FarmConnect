@@ -124,14 +124,11 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
             protectionName: values.protectionName,
             protectionDeployExpectedDate: values.protectionDeployExpectedDate,
         };
-        console.log("protectionData", protectionData)
 
         const addPlot = async () => {
             try {
                 const response = await CropService.addCropProtectionDate(protectionData);
-                console.log(response)
             } catch (error) {
-                console.log(error)
             }
         };
         addPlot();
@@ -148,7 +145,6 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
         const updatePlot = async () => {
             try {
                const response = await CropService.updateProtectionActualDate(protectionData);
-                console.log(response, "response")
                 showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
             } catch (error) {
                 showToast('error', 'Actual Protection Date', 'Error');
@@ -164,7 +160,6 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 const response = await LandService.getAllSoils();
                 setSoilDataOptions([...response.result || []]);
             } catch (error) {
-                console.error("Error fetching soil data:", error);
             }
         };
         fetchSoilData();
@@ -175,7 +170,6 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                console.log(response.result, "res")
             } catch (error) {
             }
         };

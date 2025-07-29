@@ -35,8 +35,6 @@ const ProjectListScreen = () => {
       try {
         const response = await ProjectService.getProjects();
         setProjects(response.result || []);
-        showToast('success', 'Data Fetched', 'Your Project Details are Fetched');
-        console.log("res", response)
       } catch (error) {
       }
     };
