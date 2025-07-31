@@ -9,6 +9,7 @@ import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
+import { Card } from 'react-native-paper';
 
 
 const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
@@ -72,10 +73,23 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
             }
             {cropDetail?.plantationNurseryRaised
                 &&
-                <View style={styles.card}>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised Date: {AppFunctions.formatDate(cropDetail?.plantationNurseryRaised)}</Text>
-                    <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Nursery is Raised"</Text>
-                </View>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <View>
+                            <Text style={styles.sectionValue}><MaterialCommunityIcons name="calendar" size={18} color='#388e3c' />  Nursery:</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Date:  <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.plantationNurseryRaisedDate)} </Text>
+                            </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Description:<Text style={styles.sectionValue}>  Nursery is Raised</Text>
+                            </Text>
+                        </View>
+                    </Card.Content>
+                </Card>
             }
             <Modal
                 visible={modalVisible}
@@ -148,14 +162,9 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
     },
-    card: {
-        margin: 10,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 16,
-        elevation: 2,
-    },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10, marginHorizontal: 10 },
+    section: { fontSize: 16, marginTop: 10, },
+    sectionValue: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',

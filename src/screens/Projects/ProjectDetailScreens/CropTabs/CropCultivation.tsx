@@ -10,6 +10,7 @@ import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
+import { Card } from 'react-native-paper';
 
 const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -125,23 +126,51 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                     <Text style={styles.addBtnText}>Add Cultivation</Text>
                 </TouchableOpacity>}
             {cropDetail?.cultivationStatus &&
-                <View style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
-                        <View style={styles.cardActions}>
-                            <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <View>
+                            <Text style={styles.sectionValue}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation:</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Expected: <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.cultivationExpectedDate)}</Text>
+                            </Text>
+                            {!cropDetail?.cultivationActualDate && <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail)}>
+                                <Icon name="pencil" size={22} color="#388e3c" />
+                            </TouchableOpacity>}
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Actual: <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.cultivationActualDate)}</Text>
+                            </Text>
+                            <TouchableOpacity style={styles.section} onPress={() => openChangeStatusModal(cropDetail)}>
                                 <Icon name="pencil" size={22} color="#388e3c" />
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => openChangeStatusModal(cropDetail)}>
-                                <MaterialCommunityIcons name="tag" size={22} color="#388e3c" />
-                            </TouchableOpacity>
                         </View>
-                    </View>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Expected Date : {AppFunctions.formatDate(cropDetail?.cultivationExpectedDate)}</Text>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Actual Date : {AppFunctions.formatDate(cropDetail?.cultivationActualDate)}</Text>
-                    <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Notes: {cropDetail?.cultivationActualDateNotes}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Notes: <Text style={styles.sectionValue}> {cropDetail?.cultivationActualDateNotes}</Text>
+                            </Text>
+                        </View>
+                    </Card.Content>
+                </Card>
+                // <View style={styles.card}>
+                //     <View style={styles.cardHeader}>
+                //         <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
+                //         <View style={styles.cardActions}>
+                //             <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
+                //                 <Icon name="pencil" size={22} color="#388e3c" />
+                //             </TouchableOpacity>
+                //             <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => openChangeStatusModal(cropDetail)}>
+                //                 <MaterialCommunityIcons name="tag" size={22} color="#388e3c" />
+                //             </TouchableOpacity>
+                //         </View>
+                //     </View>
+                //     <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Expected Date : {AppFunctions.formatDate(cropDetail?.cultivationExpectedDate)}</Text>
+                //     <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Actual Date : {AppFunctions.formatDate(cropDetail?.cultivationActualDate)}</Text>
+                //     <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Notes: {cropDetail?.cultivationActualDateNotes}</Text>
 
-                </View>
+                // </View>
             }
             <Modal
                 visible={modalVisible}
@@ -237,20 +266,15 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 0,
     },
+    sectionValue: { fontSize: 16, fontWeight: 'bold' },
+    section: { fontSize: 16, marginTop: 10, },
     addBtnText: {
         marginLeft: 8,
         color: '#388e3c',
         fontWeight: 'bold',
         fontSize: 16,
     },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 16,
-        marginBottom: 16,
-        elevation: 2,
-        margin: 10,
-    },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10, marginHorizontal: 10 },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',

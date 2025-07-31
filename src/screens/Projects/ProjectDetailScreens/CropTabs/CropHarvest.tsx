@@ -438,11 +438,11 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 <Card style={styles.card}>
                     <Card.Content>
                         <View style={{ flex: 1, flexDirection: 'row', }}>
-                            <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
+                            <Text style={styles.sectionValue}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Start:</Text>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                             <Text style={styles.section}>
-                                - Expected: {AppFunctions.formatDate(cropDetail?.harvestStartExpectedDate)}
+                                - Expected:  <Text style={styles.sectionValue}>{AppFunctions.formatDate(cropDetail?.harvestStartExpectedDate)} </Text>
                             </Text>
                             {!cropDetail?.harvestStartActualDate && <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTSTARTEXPECTED')}>
                                 <Icon name="pencil" size={22} color="#388e3c" />
@@ -450,7 +450,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                             <Text style={styles.section}>
-                                - Actual: {AppFunctions.formatDate(cropDetail?.harvestStartActualDate)}
+                                - Actual:<Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.harvestStartActualDate)}</Text>
                             </Text>
                             <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTSTARTACTUAL')}>
                                 <Icon name="pencil" size={22} color="#388e3c" />
@@ -458,7 +458,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                             <Text style={styles.section}>
-                                - Notes: {cropDetail?.harvestStartActualDateNotes}
+                                - Notes:<Text style={styles.sectionValue}> {cropDetail?.harvestStartActualDateNotes} </Text>
                             </Text>
 
                         </View>
@@ -468,12 +468,12 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                     <Card style={styles.card}>
                         <Card.Content>
                             <View >
-                                <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Yield Collection:</Text>
-                                <Text style={styles.subItem}>-Harvest Yield Expected(Kilos) : </Text>
-                                <Text style={styles.subItem}>-Harvest Yield Interval Count : </Text>
+                                <Text style={styles.sectionValue}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Yield Collection:</Text>
+                                <Text style={styles.subItem}>-Harvest Yield Expected(Kilos) :<Text style={styles.sectionValue}>{cropDetail?.harvestingYieldKilosExpected}</Text> </Text>
+                                <Text style={styles.subItem}>-Harvest Yield Interval Count : <Text style={styles.sectionValue}>{cropDetail?.harvestingIntervalCountExpected}</Text> </Text>
                                 <Divider style={styles.divider} />
-                                <Text style={styles.subItem}>-Total Yield Collected(Kilos) : {cropDetail?.harvests.map((item: any) => { return item.yieldCollectedKillosCount }).reduce((sum: number, num: number) => sum + num, 0)}</Text>
-                                <Text style={styles.subItem}>-Total Yield Interval Count : {cropDetail?.harvests.length}</Text>
+                                <Text style={styles.subItem}>-Total Yield Collected(Kilos) : <Text style={styles.sectionValue}>{cropDetail?.harvests.map((item: any) => { return item.yieldCollectedKillosCount }).reduce((sum: number, num: number) => sum + num, 0)}</Text> </Text>
+                                <Text style={styles.subItem}>-Total Yield Interval Count :<Text style={styles.sectionValue}> {cropDetail?.harvests.length} </Text></Text>
                             </View>
                             <View style={{ alignItems: 'flex-end', flexDirection: 'row' }}>
                                 <View style={{ flex: 1 }}>
@@ -501,11 +501,11 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                     <Card style={styles.card}>
                         <Card.Content>
                             <View style={{ flex: 1, flexDirection: 'row', }}>
-                                <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
+                                <Text style={styles.sectionValue}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest End:</Text>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                                 <Text style={styles.section}>
-                                    - Expected: {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}
+                                    - Expected: <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)} </Text>
                                 </Text>
                                 {cropDetail?.harvestEndExpectedDate === null && <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
                                     <Icon name="pencil" size={22} color="#388e3c" />
@@ -513,7 +513,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                                 <Text style={styles.section}>
-                                    - Actual: {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}
+                                    - Actual: <Text style={styles.sectionValue}>{AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
                                 </Text>
                                 <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTENDACTUAL')}>
                                     <Icon name="pencil" size={22} color="#388e3c" />
@@ -521,7 +521,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                                 <Text style={styles.section}>
-                                    - Notes: {cropDetail?.harvestEndActualDateNotes}
+                                    - Notes: <Text style={styles.sectionValue}> {cropDetail?.harvestEndActualDateNotes}</Text>
                                 </Text>
                             </View>
                         </Card.Content>
@@ -546,11 +546,11 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
 };
 
 const styles = StyleSheet.create({
-
+    sectionValue: { fontSize: 16, fontWeight: 'bold' },
     container: { padding: 16, marginVertical: 10 },
     card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10, marginHorizontal: 10 },
     row: { fontSize: 16, marginVertical: 4 },
-    section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
+    section: { fontSize: 16, marginTop: 10, },
     subItem: { fontSize: 15, marginLeft: 20, marginVertical: 2 },
     divider: { marginVertical: 8 },
     addBtn: {

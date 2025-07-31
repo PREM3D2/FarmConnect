@@ -9,6 +9,7 @@ import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
+import { Card } from 'react-native-paper';
 
 
 const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
@@ -73,10 +74,23 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
             }
             {cropDetail?.stackingStatus
                 &&
-                <View style={styles.card}>
-                    <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking Date: {AppFunctions.formatDate(cropDetail?.stackingDate)}</Text>
-                    <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Description: "Stacking is Installed"</Text>
-                </View>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <View>
+                            <Text style={styles.sectionValue}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" /> Stacking:</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Date:  <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.stackingDate)} </Text>
+                            </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
+                            <Text style={styles.section}>
+                                - Description:<Text style={styles.sectionValue}>  Stacking is Installed</Text>
+                            </Text>
+                        </View>
+                    </Card.Content>
+                </Card>
             }
             <Modal
                 visible={modalVisible}
@@ -143,20 +157,15 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 0,
     },
+    section: { fontSize: 16, marginTop: 10, },
+    sectionValue: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
     addBtnText: {
         marginLeft: 8,
         color: '#388e3c',
         fontWeight: 'bold',
         fontSize: 16,
     },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 16,
-        margin: 10,
-        marginBottom: 16,
-        elevation: 2,
-    },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff", marginVertical: 10, marginHorizontal: 10 },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
