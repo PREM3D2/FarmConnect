@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
 import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
-import toastConfig from '../../../../components/ToastConfig';
 import { showToast } from '../../../../components/ShowToast';
 import { Card } from 'react-native-paper';
 import AppDropdown from '../../../../components/AppDropdown';
@@ -40,15 +37,21 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
             cropFailureReasonId: values.cropFailureReasonId
         };
 
-        console.log("harvestData", harvestData)
-
-        const addPlot = async () => {
+        const updateUprootActual = async () => {
             try {
                 const response = await CropService.updateUprootActualDate(harvestData)
-            } catch (error) {
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Uproot", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Uproot", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Uproot", error.message);
             }
         };
-        addPlot();
+        updateUprootActual();
         setReloadList(!reloadList);
     }
 
@@ -58,13 +61,21 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
             expectedDate: values.expectedDate,
         };
 
-        const addPlot = async () => {
+        const updateUprootExpected = async () => {
             try {
-                const response = await CropService.updateUprootExpectedDate(harvestData)
-            } catch (error) {
+                const response = await CropService.updateUprootExpectedDate(harvestData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Uproot", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Uproot", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Uproot", error.message);
             }
         };
-        addPlot();
+        updateUprootExpected();
         setReloadList(!reloadList);
     }
 

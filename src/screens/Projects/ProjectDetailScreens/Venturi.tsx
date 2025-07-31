@@ -6,10 +6,11 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 import AppTextInput from '../../../components/AppTextInput';
 import VenturiService from '../../../services/VenturiService';
-import { Project } from '../ProjectListScreen';
+import { Project, ProjectStackParamList } from '../ProjectListScreen';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { ActivityIndicator } from 'react-native-paper';
 import { showToast } from '../../../components/ShowToast';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 
 export type Venturi = {
@@ -30,6 +31,7 @@ const Venturi = () => {
     const { project } = (route.params as { project: Project });
     const [reloadList, setReloadList] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
 
     const openAddModal = () => {
         setEditventuri(null);
@@ -123,7 +125,6 @@ const Venturi = () => {
         setReloadList(!reloadList);
     }
 
-    const navigation = useNavigation();
 
     useEffect(() => {
         setIsLoading(true);
@@ -146,7 +147,7 @@ const Venturi = () => {
 
 
     const renderVenturi = ({ item }: { item: Venturi }) =>
-         (
+    (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.venturiName}</Text>
@@ -173,6 +174,12 @@ const Venturi = () => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProjectListScreen')} style={styles.backBtn}>
+                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>{project.projectName}</Text>
+            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Venturi</Text>

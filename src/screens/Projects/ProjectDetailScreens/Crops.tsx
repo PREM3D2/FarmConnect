@@ -12,7 +12,6 @@ import CustomTabView from '../../../components/CustomTabView';
 import { Project } from '../ProjectListScreen';
 import CropUproot from './CropTabs/CropUproot';
 
-
 const Crops = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -94,16 +93,31 @@ const Crops = () => {
     setRoutes(updatedRoutes);
   }, [])
 
+  const getCropCurrentStage = () => {
+    if(!cropDetail) return "Initial";
+    if (cropDetail.uprootingStatus) {
+      return "Uprooted";
+    }
+    if (cropDetail.harvestStartStatus) {
+      return "Harvest Started";
+      ;
+    }
+    if (cropDetail.cultivationStatus) {
+      return "Cultivation";
+    }
+    return "Initial";
+  }
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header with Back Button and Project Name */}
-      {/* <View style={styles.header}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#388e3c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{cropDetail?.cropName}</Text>
-      </View> */}
+        <Text style={styles.headerTitle}>{cropDetail?.cropName}<Text style ={{color: '#388e3c'}}> ({getCropCurrentStage()})</Text> </Text>
+      </View>
       <CustomTabView
         routes={routes}
         scenes={scenes}

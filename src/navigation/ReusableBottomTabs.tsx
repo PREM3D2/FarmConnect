@@ -38,7 +38,8 @@ const ReusableBottomTabs: React.FC<Props> = ({ project, tabs, initialRouteName }
     <Tab.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
-        header: () => <Header title={project.projectName} />,
+        headerShown:false,
+        // header: () => <Header title={project.projectName} />,
         tabBarActiveTintColor: '#388e3c',
       }}
     >
@@ -49,7 +50,7 @@ const ReusableBottomTabs: React.FC<Props> = ({ project, tabs, initialRouteName }
           component={tab.component}
           initialParams={{ project }}
           options={{
-            title: tab.label ?? tab.name,
+            // title: tab.label ?? tab.name,
             tabBarIcon: ({ color, size }) => (
               <MaterialCommunityIcons name={tab.icon} color={color} size={size} />
             ),

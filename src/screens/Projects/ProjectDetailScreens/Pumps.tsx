@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import PumpsService from '../../../services/PumpsService';
 import AppTextInput from '../../../components/AppTextInput';
 import { useNavigation, useRoute } from '@react-navigation/core';
-import { Project } from '../ProjectListScreen';
+import { Project, ProjectStackParamList } from '../ProjectListScreen';
 import AppDropdown from '../../../components/AppDropdown';
 import { ActivityIndicator, PaperProvider } from 'react-native-paper';
 import TagCompoent from '../../../components/TagComponent';
 import VenturiService from '../../../services/VenturiService';
 import { Venturi } from './Venturi';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 
 const phaseDropdown = [
@@ -53,9 +53,11 @@ const Pumps = () => {
     const [isEditCase, setIsEditCase] = useState(false);
     const [isMapVenturi, setIsMapVenturi] = useState(false);
     const [selectedVenturies, setSelectedVenturies] = useState<any>([])
+    const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
     // const [selectedLinkedPump, setSelectedLinkedPump  ] = useState<Pump | null>(null);
 
     const openAddModal = () => {
+        setIsMapVenturi(false);
         setIsEditCase(false);
         setEditPumps(null);
         setModalVisible(true);
@@ -244,6 +246,12 @@ const Pumps = () => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProjectListScreen')} style={styles.backBtn}>
+                    <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>{project.projectName}</Text>
+            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Pump</Text>

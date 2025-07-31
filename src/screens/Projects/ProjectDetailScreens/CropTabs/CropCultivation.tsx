@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Dropdown } from 'react-native-element-dropdown';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import LandService from '../../../../services/LandService';
 import AppTextInput from '../../../../components/AppTextInput';
 import { Project } from '../../ProjectListScreen';
 import CropService from '../../../../services/CropService';
@@ -13,56 +11,11 @@ import { AppFunctions } from '../../../../Helpers/AppFunctions';
 import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
 
-
-const riserSides = [
-    { label: 'Length', value: 'length' },
-    { label: 'Width', value: 'width' },
-];
-
-type Soil = {
-    code: 1,
-    soilColor: string,
-    soilDesc: string
-}
-//need to update soilColor dropdown from API
-const soilColor = [
-    { label: 'Red', value: 1 },
-    { label: 'Black', value: 2 },
-];
-
-type Plot = {
-    code: number;
-    projectId: number;
-    projectName: string;
-    plotName: string;
-    plotLength: number;
-    plotWidth: number;
-    isRiser: boolean;
-    riserCalMethod: string;
-    plotRiserDistance: number;
-    plotBedActualCount: number;
-    soilId: number;
-    soilColor: string;
-    plotTotalArea: number;
-    plotBedEstimateCount: number;
-};
-
-type CropProtectionInfo = {
-    code: number;
-    plotCropId: number;
-    protectionName: string;
-    protectionDeployExpectedDate: string; // Format: 'YYYY-MM-DD'
-    protectionDeployActualDate: string;   // Format: 'YYYY-MM-DD'
-    protectionDeployActualDateNotes: string;
-};
-
 const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
-    const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
-    const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
     const [isChangeStatus, setIsChangeStatus] = useState(false);
 
 
@@ -85,51 +38,26 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
         setIsChangeStatus(true);
     };
 
-    const handleDelete = (protection: CropProtectionInfo) => {
-        const deletePlot = async () => {
-            try {
-                const response = await CropService.deleteCropProtectionExpected(protection.code);
-                showToast('success', 'Delete Protection', 'Protection has been Deleted Successfully');
-            } catch (error) {
-                showToast('error', 'Delete Protection', 'Protection has been Deleted Successfully');
-            }
-        };
-        deletePlot();
-        setReloadList(!reloadList);
-    };
-
-    const confirmDelete = (protection: CropProtectionInfo) => {
-        Alert.alert(
-            'Delete CropCultivation',
-            `Do you want to Delete the CropCultivation ${protection.protectionName}?`,
-            [
-                {
-                    text: 'No',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Yes',
-                    onPress: () => handleDelete(protection),
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: true }
-        );
-    };
-
     const handleCultivationExpectedDateUpdate = async (values: any) => {
         const cultivationData = {
             plotCropId: cropCode,
             expectedDate: values.cultivationExpectedDate,
         };
-
-        const addPlot = async () => {
+        const updateCultivationExpectedDate = async () => {
             try {
                 const response = await CropService.updateCultivationExpectedDate(cultivationData);
-            } catch (error) {
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Cultivation", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Cultivation", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Cultivation", error.message);
             }
         };
-        addPlot();
+        await updateCultivationExpectedDate();
         setReloadList(!reloadList);
     }
 
@@ -140,28 +68,23 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
             actualDate: values.cultivationActualDate,
             actualDateNotes: values.cultivationActualDateNotes,
         };
-        const updatePlot = async () => {
+        const updateCultivationActualDate = async () => {
             try {
                 const response = await CropService.updateCultivationActualDate(cultivationData);
-                showToast('success', 'Actual Cultivation Date', 'Actual Cultivation has been added Successfully');
-            } catch (error) {
-                showToast('error', 'Actual Cultivation Date', 'Error');
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Cultivation", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Cultivation", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Cultivation", error.message);
             }
         };
-        updatePlot();
-        setReloadList(!reloadList);
+        await updateCultivationActualDate();
+        setReloadList(prev => !prev);
     }
-
-    useEffect(() => {
-        const fetchSoilData = async () => {
-            try {
-                const response = await LandService.getAllSoils();
-                setSoilDataOptions([...response.result || []]);
-            } catch (error) {
-            }
-        };
-        fetchSoilData();
-    }, []);
 
     useEffect(() => {
         const fetchCropDetail = async () => {
@@ -174,32 +97,6 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
         fetchCropDetail();
     }, [reloadList]);
 
-    const renderProtectionItem = ({ cropDetail }: { cropDetail: any }) => (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
-                <View style={styles.cardActions}>
-                    <TouchableOpacity onPress={() => openEditModal(cropDetail)}>
-                        <Icon name="pencil" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => openChangeStatusModal(cropDetail)}>
-                        <MaterialCommunityIcons name="tag" size={22} color="#388e3c" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Expected Date : {AppFunctions.formatDate(cropDetail.cultivationExpectedDate)}</Text>
-            <Text style={{ fontSize: 16, marginVertical: 4 }}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation Actual Date : {AppFunctions.formatDate(cropDetail.cultivationActualDate)}</Text>
-            <Text style={{ fontSize: 16, marginVertical: 4, marginLeft: 28 }}>Notes: {cropDetail.cultivationActualDateNotes}</Text>
-
-        </View>
-    );
-
-    // const validationSchema = (isActualDeployed: boolean) => Yup.object().shape({
-    //     protectionDeployExpectedDate: Yup.string().required('Date is required'),
-    //     protectionName: Yup.string().required('Protection Name is required'),
-    //     protectionDeployActualDate: Yup.string().nullable(),
-    //     protectionDeployActualDateNotes: Yup.string().nullable(),
-    // });
 
     const getValidationSchema = (isChangeStatus: boolean) =>
         Yup.object().shape({
@@ -227,9 +124,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                     <Icon name="plus-circle" size={24} color='#388e3c' />
                     <Text style={styles.addBtnText}>Add Cultivation</Text>
                 </TouchableOpacity>}
-
             {cropDetail?.cultivationStatus &&
-
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Text style={styles.landName}>{cropDetail?.plotCropName}</Text>
@@ -248,7 +143,6 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
 
                 </View>
             }
-
             <Modal
                 visible={modalVisible}
                 animationType="slide"

@@ -8,9 +8,10 @@ import LandService from '../../../services/LandService';
 import AppTextInput from '../../../components/AppTextInput';
 import AppDropdown from '../../../components/AppDropdown';
 import { useNavigation, useRoute } from '@react-navigation/core';
-import { Project } from '../ProjectListScreen';
+import { Project, ProjectStackParamList } from '../ProjectListScreen';
 import { showToast } from '../../../components/ShowToast';
 import { ActivityIndicator } from 'react-native-paper';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 
 const riserSides = [
@@ -50,7 +51,7 @@ const Land = ({ }) => {
     const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
     const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
-    const navigation = useNavigation();
+    const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
     const openAddModal = () => {
         setEditLand(null);
         setModalVisible(true);
@@ -241,12 +242,12 @@ const Land = ({ }) => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
-            {/* <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProjectListScreen')} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Lands</Text>
-            </View> */}
+                <Text style={styles.headerTitle}>{project.projectName}</Text>
+            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Land</Text>

@@ -135,9 +135,15 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
         const addEditProtection = async () => {
             try {
                 const response = editCropProtection === null ? await CropService.addCropProtectionDate(protectionAddData) : await CropService.addCropProtectionDate(protectionEditData)
-                console.log(response)
-            } catch (error) {
-                console.log(error, "err")
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Protection", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Protection", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Protection", error.message);
             }
         };
         addEditProtection();
@@ -154,9 +160,15 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
         const updatePlot = async () => {
             try {
                 const response = await CropService.updateProtectionActualDate(protectionData);
-                showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
-            } catch (error) {
-                showToast('error', 'Actual Protection Date', 'Error');
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Protection", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Protection", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Protection", error.message);
             }
         };
         updatePlot();

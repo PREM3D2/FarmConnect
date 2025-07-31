@@ -15,55 +15,14 @@ import { showToast } from '../../../../components/ShowToast';
 import { Card, Divider } from 'react-native-paper';
 
 
-const riserSides = [
-    { label: 'Length', value: 'length' },
-    { label: 'Width', value: 'width' },
-];
 
-type Soil = {
-    code: 1,
-    soilColor: string,
-    soilDesc: string
-}
-//need to update soilColor dropdown from API
-const soilColor = [
-    { label: 'Red', value: 1 },
-    { label: 'Black', value: 2 },
-];
 
-type Plot = {
-    code: number;
-    projectId: number;
-    projectName: string;
-    plotName: string;
-    plotLength: number;
-    plotWidth: number;
-    isRiser: boolean;
-    riserCalMethod: string;
-    plotRiserDistance: number;
-    plotBedActualCount: number;
-    soilId: number;
-    soilColor: string;
-    plotTotalArea: number;
-    plotBedEstimateCount: number;
-};
-
-type CropProtectionInfo = {
-    code: number;
-    plotCropId: number;
-    protectionName: string;
-    protectionDeployExpectedDate: string; // Format: 'YYYY-MM-DD'
-    protectionDeployActualDate: string;   // Format: 'YYYY-MM-DD'
-    protectionDeployActualDateNotes: string;
-};
 
 const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
-    const [plots, setPlots] = useState<Plot[]>([]);
     const [reloadList, setReloadList] = useState(false);
-    const [soilDataOptions, setSoilDataOptions] = useState<Soil[]>([]);
     const [isChangeStatus, setIsChangeStatus] = useState(false);
     const [expandedItem, setExpandedItem] = useState<boolean>(false);
     const [currentSelectedForm, setCurrentSelectedForm] = useState<string>('')
@@ -81,12 +40,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         setEditCropProtection(land);
         setModalVisible(true);
         setIsChangeStatus(false);
-    };
-
-    const openChangeStatusModal = (land: any) => {
-        setEditCropProtection(land);
-        setModalVisible(true);
-        setIsChangeStatus(true);
     };
 
     const handleDelete = (yieldId: string) => {
@@ -136,7 +89,15 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         const addPlot = async () => {
             try {
                 const response = currentSelectedForm === "HARVESTSTARTEXPECTED" ? await CropService.updateharveststartexpectedDate(harvestStartData) : await CropService.updateharvestendexpectedDate(harvestEndData)
-            } catch (error) {
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Harvest", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Harvest", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Harvest", error.message);
             }
         };
         addPlot();
@@ -153,7 +114,15 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         const addHarvest = async () => {
             try {
                 const response = await CropService.addUpdateCropHarvest(harvestStartData);
-            } catch (error) {
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Harvest", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Harvest", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Harvest", error.message);
             }
         };
         await addHarvest();
@@ -166,14 +135,20 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             actualDate: values.actualDate,
             actualDateNotes: values.actualDateNotes,
         };
-        console.log("harvestData", harvestData, "currentSelectedForm" ,currentSelectedForm)
+        console.log("harvestData", harvestData, "currentSelectedForm", currentSelectedForm)
 
         const changesHarvestStartDate = async () => {
             try {
                 const response = currentSelectedForm === "HARVESTSTARTACTUAL" ? await CropService.updateharveststartactualDate(harvestData) : await CropService.updateharvestendactualDate(harvestData)
-                console.log(response,"res")
-            } catch (error) {
-                console.log(error,"error")
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Harvest", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Harvest", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Harvest", error.message);
             }
         };
         await changesHarvestStartDate();
@@ -191,9 +166,15 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         const updatePlot = async () => {
             try {
                 const response = await CropService.updateProtectionActualDate(protectionData);
-                showToast('success', 'Actual Protection Date', 'Actual Protection has been added Successfully');
-            } catch (error) {
-                showToast('error', 'Actual Protection Date', 'Error');
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    showToast(toastType, "Harvest", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Harvest", response.result.errorMessage);
+                }
+            } catch (error: any) {
+                showToast('error', "Harvest", error.message);
             }
         };
         updatePlot();
@@ -201,22 +182,10 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
     }
 
     useEffect(() => {
-        const fetchSoilData = async () => {
-            try {
-                const response = await LandService.getAllSoils();
-                setSoilDataOptions([...response.result || []]);
-            } catch (error) {
-            }
-        };
-        fetchSoilData();
-    }, []);
-
-    useEffect(() => {
         const fetchCropDetail = async () => {
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                console.log("response.result", response.result)
             } catch (error) {
             }
         };
@@ -268,7 +237,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 <Formik
                     initialValues={{
                         plotCropId: cropCode,
-                        expectedDate: editCropProtection?.expectedDate || '',
+                        expectedDate: currentSelectedForm === "HARVESTSTARTEXPECTED" ? (editCropProtection?.harvestStartExpectedDate || '') : (editCropProtection?.harvestEndExpectedDate || ''),
                         harvestingYieldKilosExpected: editCropProtection?.harvestingYieldKilosExpected as string || '',
                         harvestingIntervalCountExpected: editCropProtection?.harvestingIntervalCountExpected as string || '',
                     }}
@@ -335,8 +304,8 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 <Formik
                     initialValues={{
                         plotCropId: cropCode,
-                        actualDate: editCropProtection?.actualDate || '',
-                        actualDateNotes: editCropProtection?.actualDateNotes as string || '',
+                        actualDate: currentSelectedForm === "HARVESTSTARTACTUAL" ? (editCropProtection?.harvestStartActualDate || '') : (editCropProtection?.harvestEndActualDate || ''),
+                        actualDateNotes: currentSelectedForm === "HARVESTSTARTACTUAL" ? (editCropProtection?.harvestStartActualDateNotes || '') : (editCropProtection?.harvestEndActualDateNotes || ''),
                     }}
                     validationSchema={getHarvestStartActualDataValidation}
                     onSubmit={(values, { resetForm }) => {
@@ -363,7 +332,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                                 onBlur={handleBlur('actualDateNotes')}
                                 value={values.actualDateNotes}
                                 required={true}
-                                error={touched.actualDateNotes && errors.actualDateNotes ? errors.actualDateNotes : ''}
+                                error={touched.actualDateNotes && errors.actualDateNotes as string ? errors.actualDateNotes as string : ''}
                                 onChangeText={handleChange('actualDateNotes')} />
                             <View style={styles.modalActions}>
                                 <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>
@@ -459,7 +428,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
     const loadFormData = () => {
         if (currentSelectedForm === "HARVESTSTARTEXPECTED" || currentSelectedForm === "HARVESTENDEXPECTED") return getHarvestStartExpectedData();
         if (currentSelectedForm === "HARVESTSTARTACTUAL" || currentSelectedForm === "HARVESTENDACTUAL") return getHarvestStartActualData();
-        console.log("currentSelectedForm",currentSelectedForm)
+        console.log("currentSelectedForm", currentSelectedForm)
         return addEditHarvestYield();
     }
 

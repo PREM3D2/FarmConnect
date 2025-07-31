@@ -8,13 +8,14 @@ import LandService from '../../../services/LandService';
 import AppTextInput from '../../../components/AppTextInput';
 import AppDropdown from '../../../components/AppDropdown';
 import { useNavigation, useRoute } from '@react-navigation/core';
-import { Project } from '../ProjectListScreen';
+import { Project, ProjectStackParamList } from '../ProjectListScreen';
 import CropService from '../../../services/CropService';
 import DateControl from '../../../components/DateControl';
 import { Plot } from './Land';
 import { ActivityIndicator } from 'react-native-paper';
 import { showToast } from '../../../components/ShowToast';
 import { AppFunctions } from '../../../Helpers/AppFunctions';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 
 const CropCultivaionTypeOptions = [
@@ -96,7 +97,7 @@ const CropList = ({ }) => {
     const [cropOptions, setCropOptions] = useState<CropOption[]>([]);
     const [landOptions, setLandOptions] = useState<Plot[]>([]);
     const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<NativeStackNavigationProp<ProjectStackParamList>>();
     const [isLoading, setIsLoading] = useState(true);
 
     const openAddModal = () => {
@@ -176,12 +177,10 @@ const CropList = ({ }) => {
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
                     showToast(toastType, "Update Crop", response.result.successMessage);
-
                 }
                 else {
                     showToast(toastType, "Update Crop", response.result.errorMessage);
                 }
-                console.log(response)
             } catch (error: any) {
                 showToast('error', "Update Crop", error.errorMessage);
             }
@@ -200,7 +199,6 @@ const CropList = ({ }) => {
                 setCropOptions(cropResponse.result || []);
                 setLandOptions(landResponse.result || []);
             } catch (error) {
-                console.error('Error loading options', error);
             }
         };
         loadOptions();
@@ -211,17 +209,14 @@ const CropList = ({ }) => {
         const fetchCrops = async () => {
             if (typeof project?.projectId !== 'number') return;
             try {
-                const response = await CropService.getcropsbyprojectid(project.projectId);
-                setCrops(response.result || []);
-                console.log("Use Effect called")
+                const response = await CropService.getcropsbyprojectid(project.projectId);                
+                setCrops([...response.result]);
+                setIsLoading(false);
             } catch (error) {
-                console.error('Error loading crops:', error);
                 setCrops([]);
-            } finally {
-                setIsLoading(false); // Always stop loader
-            }
+                setIsLoading(false);
+            }           
         };
-        
         fetchCrops();
     }, [reloadList]);
 
@@ -354,12 +349,12 @@ const CropList = ({ }) => {
                     <ActivityIndicator size="large" color="#388e3c" />
                 </View>
             )}
-            {/* <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('ProjectListScreen')} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color='#388e3c' />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Crops</Text>
-            </View> */}
+                <Text style={styles.headerTitle}>{project.projectName}</Text>
+            </View>
             <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                 <Icon name="plus-circle" size={24} color='#388e3c' />
                 <Text style={styles.addBtnText}>Add Crop</Text>
