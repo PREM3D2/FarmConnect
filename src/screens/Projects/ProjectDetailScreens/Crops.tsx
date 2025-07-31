@@ -19,7 +19,7 @@ const Crops = () => {
   const { project } = (route.params as { project: Project });
   const { cropDetail } = (route.params as { cropDetail: any });
 
-  const [routes , setRoutes] = useState([
+  const [routes, setRoutes] = useState([
     { key: 'home', title: 'Home', params: route.params },
     { key: 'stacking', title: 'Stacking', params: route.params },
     { key: 'nursery', title: 'Nursery', params: route.params },
@@ -31,42 +31,42 @@ const Crops = () => {
 
   const Home = () => (
     <View style={styles.scene}>
-      <CropHome project={project} cropCode ={cropDetail.code} />
+      <CropHome project={project} cropCode={cropDetail.code} />
     </View>
   );
 
   const Stacking = () => (
     <View style={styles.scene}>
-      <CropStacking project={project} cropCode ={cropDetail.code}/>
+      <CropStacking project={project} cropCode={cropDetail.code} />
     </View>
   );
 
   const Cultivation = () => (
     <View style={styles.scene}>
-      <CropCultivation project={project} cropCode ={cropDetail.code}/>
+      <CropCultivation project={project} cropCode={cropDetail.code} />
     </View>
   );
 
   const Harvest = () => (
     <View style={styles.scene}>
-      <CropHarvest project={project} cropCode ={cropDetail.code}/>
+      <CropHarvest project={project} cropCode={cropDetail.code} />
     </View>
   );
   const Protection = () => (
     <View style={styles.scene}>
-      <CropProtection project={project} cropCode ={cropDetail.code}/>
+      <CropProtection project={project} cropCode={cropDetail.code} />
     </View>
   );
 
   const Uproot = () => (
     <View style={styles.scene}>
-      <CropUproot project={project} cropCode ={cropDetail.code}/>
+      <CropUproot project={project} cropCode={cropDetail.code} />
     </View>
   );
 
   const Nursery = () => (
     <View style={styles.scene}>
-       <CropNursery project={project} cropCode ={cropDetail.code}/>
+      <CropNursery project={project} cropCode={cropDetail.code} />
     </View>
   );
 
@@ -81,10 +81,18 @@ const Crops = () => {
   };
 
   useEffect(() => {
-    if(cropDetail.plantation === "sowing"){
+    let updatedRoutes = [...routes];
 
+    if (cropDetail.cropCultivationType === 'sowing') {
+      updatedRoutes = updatedRoutes.filter((x) => x.key !== 'nursery');
     }
-  },[])
+
+    if (!cropDetail.protectionsRequired) {
+      updatedRoutes = updatedRoutes.filter((x) => x.key !== 'protection');
+    }
+
+    setRoutes(updatedRoutes);
+  }, [])
 
 
   return (

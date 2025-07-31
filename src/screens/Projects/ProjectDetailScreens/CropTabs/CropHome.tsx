@@ -96,61 +96,6 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
     const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
     const navigation = useNavigation();
 
-    const openAddModal = () => {
-        setEditLand(null);
-        setModalVisible(true);
-    };
-
-    const openEditModal = (land: any) => {
-        setEditLand(land);
-        setModalVisible(true);
-    };
-
-    const handleAddPlot = async (values: any) => {
-        const plotData = {
-            projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-        };
-        const addPlot = async () => {
-            try {
-                await LandService.addPlot(plotData);
-            } catch (error) {
-            }
-        };
-        addPlot();
-        setReloadList(!reloadList);
-    }
-
-    const handleUpdatePlot = async (values: any) => {
-        const plotData = {
-            projectId: project?.projectId,
-            plotName: values.plotName,
-            plotLength: parseFloat(values.plotLength),
-            plotWidth: parseFloat(values.plotWidth),
-            isRiser: values.isRiser,
-            riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
-            soilId: values.soilId,
-            code: values.code,
-        };
-        const updatePlot = async () => {
-            try {
-                await LandService.updatePlot(plotData);
-            } catch (error) {
-            }
-        };
-        updatePlot();
-        setReloadList(!reloadList);
-    }
-
     useEffect(() => {
         const fetchCropDetail = async () => {
             if (typeof project?.projectId !== 'number') return;
@@ -181,46 +126,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
         plantationMethod: Yup.string().required('Plantation method is required'),
     })
 
-    const getListItems = (item: CropDetail) => {
-        const irrigationTypes = [];
-        if (!item) return [];
-        if (item.irrigationDrip) irrigationTypes.push('Drip')
-        if (item.irrigationSprinker) irrigationTypes.push('Sprinkler')
-        if (item.irrigationFlood) irrigationTypes.push('Flood')
-        let listItems = [
-
-            { label: 'Company', value: item.seedCompanyName },
-            { label: 'Variety', value: item.seedCompanyVarietyNumber },
-        ]
-
-        if (item.bed) {
-            listItems.push({ label: 'Bed Count', value: item.bedCount });
-        }
-        if (item.plantationNurseryRaised) {
-            listItems.push({ label: 'Nursery Raised', value: item.plantationNurseryRaisedDate });
-        }
-        listItems.push({ label: 'Irrigation', value: irrigationTypes.join(', ') });
-        if (item.stackingStatus) {
-            listItems.push({ label: 'Stacking', value: item.stackingDate });
-        }
-        if (item.protectionsRequired) {
-            listItems.push({ label: 'Protections', value: `Required-${item.protectionsRequiredCount} | Deployed-${item.protectionsDeployedCount}` });
-        }
-        if (item.cultivationStatus) {
-            listItems.push({ label: 'Cultivation', value: `Expected-${item.cultivationExpectedDate} | Actual-${item.cultivationActualDate}` });
-        }
-        if (item.harvestStartStatus) {
-            listItems.push({ label: 'Harvest Start', value: `Expected-${item.harvestStartExpectedDate} | Actual-${item.harvestStartActualDate}` });
-        }
-        //To-do: Add Harvest Yield Expected and Interval Count
-        if (item.harvestStartActualDate !== null && item.harvestStartActualDate !== '') {
-            listItems.push({ label: 'Yield Interval', value: `Expected-${item.harvestIntervalCountExpected} | Actual-${item.harvestYieldKilosCollected}` });
-            listItems.push({ label: 'Harvest End', value: `Expected-${item.harvestEndExpectedDate} | Actual-${item.harvestEndActualDate}` });
-        }
-        return listItems
-    }
-
-    const formatDate = (dateStr:any, withTime = false) => {
+    const formatDate = (dateStr: any, withTime = false) => {
         if (!dateStr) return '-';
         const date = new Date(dateStr);
         const options: Intl.DateTimeFormatOptions = {
@@ -232,39 +138,12 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
         return date.toLocaleString('en-US', options);
     };
 
+    const irrigationTypes = [];
+    if (cropDetail?.irrigationDrip) irrigationTypes.push('Drip')
+    if (cropDetail?.irrigationSprinker) irrigationTypes.push('Sprinkler')
+    if (cropDetail?.irrigationFlood) irrigationTypes.push('Flood')
+
     return (
-        // <View style={{ flex: 1 }}>
-        //     <View style={styles.card} >
-        //         <View style={styles.cardHeader}>
-        //             <Text style={styles.landName}>{cropDetail?.cropName}</Text>
-        //         </View>
-
-        //         <Text style={styles.field}>
-        //             <Text style={styles.fieldLabel}>Land Name: </Text>
-        //             <Text style={styles.fieldValue}>{cropDetail?.plotName}</Text>
-        //         </Text>
-
-        //         <Text style={styles.field}>
-        //             <Text style={styles.fieldLabel}>Cultivation Type: </Text>
-        //             <Text style={styles.fieldValue}>{cropDetail?.cropCultivationType}</Text>
-        //         </Text>
-        //         <Text style={styles.field}>
-        //             <Text style={styles.fieldLabel}>Crop Type: </Text>
-        //             <Text style={styles.fieldValue}>{cropDetail?.cropType}</Text>
-        //         </Text>
-        //         <Text style={styles.field}>
-        //             <Text style={styles.fieldLabel}>Plantation Method: </Text>
-        //             <Text style={styles.fieldValue}>{cropDetail?.plantationMethod}</Text>
-        //         </Text>
-        //         {getListItems(cropDetail!).map(({ label, value }, index) => (
-        //             <Text key={index} style={styles.field}>
-        //                 <Text style={styles.fieldLabel}>{label}: </Text>
-        //                 <Text style={styles.fieldValue}>{value}</Text>
-        //             </Text>
-        //         ))}
-
-        //     </View>
-        // </View>
         <PaperProvider>
             <ScrollView contentContainerStyle={styles.container}>
                 <Card style={styles.card}>
@@ -275,16 +154,17 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
                         <Text style={styles.row}><MaterialCommunityIcons name="tag" size={18} color="#9C27B0" />  Plantation Method: {cropDetail?.plantationMethod}</Text>
 
                         <Divider style={styles.divider} />
+                        {!(cropDetail?.cropCultivationType === 'sowing') && <Text style={styles.row}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {formatDate(cropDetail?.plantationNurseryRaised)}</Text>}
 
-                        <Text style={styles.row}><MaterialCommunityIcons name="calendar" size={18} color="#3F51B5" />  Nursery Raised: {formatDate(cropDetail?.plantationNurseryRaised)}</Text>
-                        <Text style={styles.row}><MaterialCommunityIcons name="water" size={18} color="#2196F3" />  Irrigation: {cropDetail?.irrigationDrip}</Text>
+                        <Text style={styles.row}><MaterialCommunityIcons name="water" size={18} color="#2196F3" />  Irrigation: {irrigationTypes.join(', ')}</Text>
                         <Text style={styles.row}><MaterialCommunityIcons name="cube-outline" size={18} color="#009688" />  Stacking: {formatDate(cropDetail?.stackingDate)}</Text>
-
-                        <Divider style={styles.divider} />
-                        <Text style={styles.section}><MaterialCommunityIcons name="shield" size={18} color="#FF9800" />  Protections:</Text>
-                        <Text style={styles.subItem}>- Required: {cropDetail?.protectionsRequiredCount}</Text>
-                        <Text style={styles.subItem}>- Deployed: {cropDetail?.protectionsDeployedCount}</Text>
-
+                        {(cropDetail?.protectionsRequired) &&
+                            <>
+                                <Divider style={styles.divider} />
+                                <Text style={styles.section}><MaterialCommunityIcons name="shield" size={18} color="#FF9800" />  Protections:</Text>
+                                <Text style={styles.subItem}>- Required: {cropDetail?.protectionsRequiredCount}</Text>
+                                <Text style={styles.subItem}>- Deployed: {cropDetail?.protectionsDeployedCount}</Text>
+                            </>}
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="tractor" size={18} color="#795548" />  Cultivation:</Text>
                         <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.cultivationExpectedDate)}</Text>
@@ -316,8 +196,8 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
 };
 
 const styles = StyleSheet.create({
-    container: { padding: 16, marginVertical:20, paddingBottom:50 },
-    card: { borderRadius: 12, elevation: 3 , backgroundColor: "#fff"},
+    container: { padding: 16, marginVertical: 20, paddingBottom: 50 },
+    card: { borderRadius: 12, elevation: 3, backgroundColor: "#fff" },
     row: { fontSize: 16, marginVertical: 4 },
     section: { fontSize: 16, marginTop: 10, fontWeight: 'bold' },
     subItem: { fontSize: 15, marginLeft: 20, marginVertical: 2 },

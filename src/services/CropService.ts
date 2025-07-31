@@ -142,7 +142,7 @@ const CropService = {
   updatecrop: async (projectData: any) => {
     try {
       const token = getJwtToken();
-      const response = await axios.put(`${API_BASE_URL}/crop`, projectData,
+      const response = await axios.put(`${API_BASE_URL}/plotcrop`, projectData,
         {
           headers: {
             Authorization: `Bearer ${token}`,

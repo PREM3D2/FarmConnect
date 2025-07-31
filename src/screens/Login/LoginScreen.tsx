@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import {
+    View, Text, TextInput, StyleSheet,
+    KeyboardAvoidingView, Platform, TouchableOpacity,
+    Image, ActivityIndicator, Alert, ScrollView
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import CheckBox from 'react-native-check-box'
+import CheckBox from 'react-native-check-box';
 import AuthService from '../../services/AuthService';
 import { useDispatch } from 'react-redux';
 import { login } from '../../store/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const LoginSchema = Yup.object().shape({
     mobile: Yup.string().required('Email/Mobile Number is required'),
     password: Yup.string().required('Password is required'),
 });
-
-
 
 type AuthStackParamList = {
     Login: undefined;
@@ -30,7 +32,8 @@ const LoginScreen = () => {
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
     const [initialValues, setInitialValues] = useState({ mobile: '', password: '', remember: false });
-    // Autofill credentials if Remember Me was checked
+    const [showPassword, setShowPassword] = useState(false);
+
     useEffect(() => {
         const loadRemembered = async () => {
             try {
@@ -38,11 +41,11 @@ const LoginScreen = () => {
                 if (saved) {
                     setInitialValues(JSON.parse(saved));
                 }
-            } catch {}
+            } catch { }
         };
         loadRemembered();
     }, []);
-    
+
     const dispatch = useDispatch();
 
     return (
@@ -50,17 +53,18 @@ const LoginScreen = () => {
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <LinearGradient colors={['#fefefdff','#8ff7a4ff']} style={styles.container}>
-                <View style={styles.innerContainer}>
-                    {/* Logo and App Name */}
+            <LinearGradient colors={['#fefefdff', '#8ff7a4ff']} style={styles.container}>
+                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                     <View style={styles.logoContainer}>
                         <Image source={require('../../../assets/images/FarmConnect_Logo.png')} style={styles.logo} />
                         <Text style={styles.appName}>AGAATE</Text>
                     </View>
-                    {/* Login Title and Welcome Text */}
+
                     <Text style={styles.loginTitle}>Login</Text>
                     <Text style={styles.welcomeText}>Welcome back! Please enter your details</Text>
+
                     <Formik
+                        enableReinitialize
                         initialValues={initialValues}
                         validationSchema={LoginSchema}
                         onSubmit={async (values) => {
@@ -91,22 +95,30 @@ const LoginScreen = () => {
                                     onBlur={handleBlur('mobile')}
                                     value={values.mobile}
                                 />
-                                {errors.mobile && touched.mobile && (
-                                    <Text style={styles.error}>{errors.mobile}</Text>
-                                )}
+                                {errors.mobile && touched.mobile && <Text style={styles.error}>{errors.mobile}</Text>}
+
                                 <Text style={styles.inputLabel}>Password</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Enter Password"
-                                    // secureTextEntry
-                                    onChangeText={handleChange('password')}
-                                    onBlur={handleBlur('password')}
-                                    value={values.password}
-                                />
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        style={styles.passwordInput}
+                                        placeholder="Enter Password"
+                                        secureTextEntry={!showPassword}
+                                        onChangeText={handleChange('password')}
+                                        onBlur={handleBlur('password')}
+                                        value={values.password}
+                                    />
+                                    <TouchableOpacity onPress={() => setShowPassword(prev => !prev)}>
+                                        <MaterialCommunityIcons
+                                            name={showPassword ? 'eye' : 'eye-off'}
+                                            size={24}
+                                            color="#555"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
                                 {errors.password && touched.password && (
                                     <Text style={styles.error}>{errors.password}</Text>
                                 )}
-                                {/* Remember Me and Forgot Password Row */}
+
                                 <View style={styles.row}>
                                     <CheckBox
                                         style={{ padding: 2, flex: 1 }}
@@ -119,31 +131,13 @@ const LoginScreen = () => {
                                         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                                     </TouchableOpacity>
                                 </View>
-                                {/* Login Button */}
+
                                 <TouchableOpacity style={styles.loginButton} onPress={() => handleSubmit()} disabled={loading}>
-                                    {loading ? (
-                                        <ActivityIndicator color="#fff" />
-                                    ) : (
-                                        <Text style={styles.loginButtonText}>Login</Text>
-                                    )}
+                                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginButtonText}>Login</Text>}
                                 </TouchableOpacity>
-                                {apiError && (
-                                    <Text style={{ color: 'red', marginBottom: 8 }}>{apiError}</Text>
-                                )}
-                                {/* Or sign in with */}
-                                {/* <Text style={styles.orText}>or sign in with</Text>
-                                <View style={styles.socialRow}>
-                                    <TouchableOpacity>
-                                        <Image source={{ uri: 'https://img.icons8.com/color/48/000000/google-logo.png' }} style={styles.socialIcon} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity>
-                                        <Image source={{ uri: 'https://img.icons8.com/color/48/000000/facebook-new.png' }} style={styles.socialIcon} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity>
-                                        <Image source={{ uri: 'https://img.icons8.com/color/48/000000/instagram-new.png' }} style={styles.socialIcon} />
-                                    </TouchableOpacity>
-                                </View> */}
-                                {/* Sign Up Link */}
+
+                                {apiError && <Text style={{ color: 'red', marginBottom: 8 }}>{apiError}</Text>}
+
                                 <View style={styles.signupRow}>
                                     <Text style={styles.signupText}>Don't have an account? </Text>
                                     <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
@@ -153,7 +147,7 @@ const LoginScreen = () => {
                             </>
                         )}
                     </Formik>
-                </View>
+                </ScrollView>
             </LinearGradient>
         </KeyboardAvoidingView>
     );
@@ -162,14 +156,12 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#e8f5e9',
-        justifyContent: 'center',
     },
-    innerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+    scrollContainer: {
         paddingHorizontal: 24,
+        paddingTop: 40,
+        paddingBottom: 20,
+        justifyContent: 'center',
     },
     logoContainer: {
         alignItems: 'center',
@@ -228,15 +220,22 @@ const styles = StyleSheet.create({
         width: '100%',
         marginBottom: 12,
     },
-    rememberMeContainer: {
+    passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        backgroundColor: '#f9f9f9',
+        marginBottom: 8,
+        height: 48,
+        width: '100%',
     },
-    rememberMeText: {
-        fontSize: 14,
+    passwordInput: {
+        flex: 1,
+        fontSize: 16,
         color: '#333',
-        fontWeight: 'bold',
-        marginLeft: 4,
     },
     forgotPasswordContainer: {
         alignItems: 'flex-end',
@@ -259,27 +258,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
-    },
-    orText: {
-        fontSize: 14,
-        color: '#333',
-        fontWeight: 'bold',
-        marginVertical: 8,
-    },
-    socialRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    socialIcon: {
-        width: 40,
-        height: 40,
-        marginHorizontal: 8,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#c8e6c9',
     },
     signupRow: {
         flexDirection: 'row',

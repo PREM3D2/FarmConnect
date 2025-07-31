@@ -83,6 +83,7 @@ type CropDetail = {
     protectionsRequired: boolean;
     protectionsRequiredCount: number;
     protectionsDeployedCount: number;
+
 };
 
 const CropList = ({ }) => {
@@ -127,6 +128,7 @@ const CropList = ({ }) => {
             plantationMethod: values.plantationMethod,
             seedCompanyLogoImage: null,
             seedCompanyLogoImageAvailable: false,
+            protectionsRequired: values.protectionsRequired
         }
         const addCrop = async () => {
             try {
@@ -142,8 +144,8 @@ const CropList = ({ }) => {
                 showToast('error', "Add Crop", error.errorMessage);
             }
         };
-        addCrop();
-        setReloadList(!reloadList);
+        await addCrop();
+        setReloadList(prev => !prev);
     }
 
     const handleUpdatePlot = async (values: any) => {
@@ -166,6 +168,7 @@ const CropList = ({ }) => {
             plantationMethod: values.plantationMethod,
             seedCompanyLogoImage: null,
             seedCompanyLogoImageAvailable: false,
+            protectionsRequired: values.protectionsRequired
         }
         const updateCrop = async () => {
             try {
@@ -173,35 +176,34 @@ const CropList = ({ }) => {
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
                     showToast(toastType, "Update Crop", response.result.successMessage);
+
                 }
                 else {
                     showToast(toastType, "Update Crop", response.result.errorMessage);
                 }
+                console.log(response)
             } catch (error: any) {
                 showToast('error', "Update Crop", error.errorMessage);
             }
         };
-        updateCrop();
-        setReloadList(!reloadList);
+        await updateCrop();
+        setReloadList(prev => !prev);
     }
 
     useEffect(() => {
-        const fetchLandOptions = async () => {
+        const loadOptions = async () => {
             try {
-                const response = await LandService.getplotsbyprojectid(project.projectId);
-                setLandOptions([...response.result || []]);
+                const [cropResponse, landResponse] = await Promise.all([
+                    CropService.getallCropOptions(),
+                    LandService.getplotsbyprojectid(project.projectId)
+                ]);
+                setCropOptions(cropResponse.result || []);
+                setLandOptions(landResponse.result || []);
             } catch (error) {
+                console.error('Error loading options', error);
             }
         };
-        const fetchCropOptions = async () => {
-            try {
-                const response = await CropService.getallCropOptions();
-                setCropOptions([...response.result || []]);
-            } catch (error) {
-            }
-        };
-        fetchCropOptions();
-        fetchLandOptions();
+        loadOptions();
     }, []);
 
     useEffect(() => {
@@ -211,11 +213,15 @@ const CropList = ({ }) => {
             try {
                 const response = await CropService.getcropsbyprojectid(project.projectId);
                 setCrops(response.result || []);
-                // console.log(response.result, "ALL Project Crops")
-                setIsLoading(false);
+                console.log("Use Effect called")
             } catch (error) {
+                console.error('Error loading crops:', error);
+                setCrops([]);
+            } finally {
+                setIsLoading(false); // Always stop loader
             }
         };
+        
         fetchCrops();
     }, [reloadList]);
 
@@ -231,7 +237,12 @@ const CropList = ({ }) => {
         irrigationSprinker: Yup.boolean().nullable(),
         irrigationFlood: Yup.boolean().nullable(),
         bed: Yup.boolean().nullable(),
-        bedCount: Yup.number().typeError("Bed Count must be a number").required('Bed count is required'),
+        bedCount: Yup.number().typeError("Bed Count must be a number")
+            .when('bed', {
+                is: true,
+                then: schema => schema.required('Bed count is required'),
+                otherwise: schema => schema.notRequired().nullable(),
+            }),
         plantationMethod: Yup.string().required('Plantation method is required'),
         plantationNurseryRaisedDate: Yup.string()
             .when('plantationNurseryRaised', {
@@ -239,6 +250,7 @@ const CropList = ({ }) => {
                 then: schema => schema.required('Nursery Date is required'),
                 otherwise: schema => schema.notRequired().nullable(),
             }),
+        protectionRequired: Yup.boolean().nullable(),
     })
 
     const toggleAccordion = (code: number) => {
@@ -259,11 +271,10 @@ const CropList = ({ }) => {
         if (item.bed) {
             listItems.push({ label: 'Bed Count', value: item.bedCount });
         }
-        if (item.plantationNurseryRaised) {
+        if (item.plantationNurseryRaised && item.cropCultivationType !== 'sowing') {
             listItems.push({ label: 'Nursery Raised', value: AppFunctions.formatDate(item?.plantationNurseryRaisedDate) });
         }
 
-        //item.plantationNurseryRaisedDate
         listItems.push({ label: 'Irrigation', value: irrigationTypes.join(', ') });
         if (item.stackingStatus) {
             listItems.push({ label: 'Stacking', value: AppFunctions.formatDate(item?.stackingDate) });
@@ -277,15 +288,12 @@ const CropList = ({ }) => {
         if (item.harvestStartStatus) {
             listItems.push({ label: 'Harvest Start', value: `Expected-${AppFunctions.formatDate(item?.harvestStartExpectedDate)} | Actual-${AppFunctions.formatDate(item?.harvestStartActualDate)}` });
         }
-        //To-do: Add Harvest Yield Expected and Interval Count
         if (item.harvestStartActualDate !== null && item.harvestStartActualDate !== '') {
             listItems.push({ label: 'Yield Interval', value: `Expected-${item.harvestIntervalCountExpected} | Actual-${item.harvestYieldKilosCollected}` });
             listItems.push({ label: 'Harvest End', value: `Expected-${AppFunctions.formatDate(item?.harvestEndExpectedDate)} | Actual-${AppFunctions.formatDate(item?.harvestEndActualDate)}` });
         }
-        return listItems
+        return listItems;
     }
-
-    //
 
     const renderLand = ({ item }: { item: CropDetail }) => (
         <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropDetail", { project: project, cropDetail: item })} >
@@ -370,7 +378,7 @@ const CropList = ({ }) => {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{editLand ? 'Edit CropList' : 'Add CropList'}</Text>
+                        <Text style={styles.modalTitle}>{editLand ? 'Edit Crop' : 'Add Crop'}</Text>
                         <Formik
                             initialValues={{
                                 projectId: project?.projectId || '',
@@ -388,7 +396,8 @@ const CropList = ({ }) => {
                                 bed: editLand?.bed || false,
                                 bedCount: editLand?.bedCount || '',
                                 plantationMethod: editLand?.plantationMethod || '',
-                                code: editLand?.cropId
+                                code: editLand?.cropId,
+                                protectionsRequired: editLand?.protectionsRequired || false,
                             }}
                             validationSchema={validationSchema}
                             onSubmit={(values, { resetForm }) => {
@@ -407,7 +416,10 @@ const CropList = ({ }) => {
                                     if (!values.plantationNurseryRaised) {
                                         setFieldValue('plantationNurseryRaisedDate', '', false);
                                     }
-                                }, [values.plantationNurseryRaised]);
+                                    if (!values.bed) {
+                                        setFieldValue('bedCount', '', false);
+                                    }
+                                }, [values.plantationNurseryRaised, values.bed]);
 
                                 return (
                                     <>
@@ -462,8 +474,6 @@ const CropList = ({ }) => {
                                                 </TouchableOpacity>
                                                 <Text style={styles.checkboxLabel}>Nursery Raised</Text>
                                             </View>
-
-
                                             {values.plantationNurseryRaised &&
                                                 <View style={styles.dropdownRow}>
                                                     <DateControl
@@ -480,10 +490,10 @@ const CropList = ({ }) => {
                                             <View style={styles.checkboxRow}>
                                                 <TouchableOpacity
                                                     style={styles.checkbox}
-                                                    onPress={() => setFieldValue('plantationNurseryRaised', !values.plantationNurseryRaised)}
+                                                    onPress={() => setFieldValue('protectionsRequired', !values.protectionsRequired)}
                                                 >
                                                     <MaterialCommunityIcons
-                                                        name={values.plantationNurseryRaised ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                                        name={values.protectionsRequired ? 'checkbox-marked' : 'checkbox-blank-outline'}
                                                         size={22}
                                                         color="#388e3c"
                                                     />
@@ -556,14 +566,14 @@ const CropList = ({ }) => {
                                                 </TouchableOpacity>
                                                 <Text style={styles.checkboxLabel}>Bed</Text>
                                             </View>
-                                            <AppTextInput
+                                            {values.bed && <AppTextInput
                                                 placeholder="Bed Count"
                                                 maxLength={45}
                                                 onBlur={handleBlur('bedCount')}
                                                 value={values.bedCount}
                                                 required={true}
                                                 error={touched.bedCount && errors.bedCount ? errors.bedCount : ''}
-                                                onChangeText={handleChange('bedCount')} />
+                                                onChangeText={handleChange('bedCount')} />}
                                             <AppDropdown
                                                 required={true}
                                                 data={plantationOptions}
