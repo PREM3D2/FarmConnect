@@ -131,12 +131,10 @@ const CropList = ({ }) => {
             seedCompanyLogoImageAvailable: false,
             protectionsRequired: values.protectionsRequired
         }
-        console.log(cropData, "cropData")
         const addCrop = async () => {
             try {
                 const response = await CropService.addcrop(cropData);
                 const toastType = response.result.success ? 'success' : 'error'
-                console.log(response)
                 if (response.result.success) {
                     showToast(toastType, "Add Crop", response.result.successMessage);
                 }
@@ -144,7 +142,6 @@ const CropList = ({ }) => {
                     showToast(toastType, "Add Crop", response.result.errorMessage);
                 }
             } catch (error: any) {
-                 console.log(error)
                 showToast('error', "Add Crop", error.errorMessage);
             }
         };
@@ -311,7 +308,7 @@ const CropList = ({ }) => {
     }
 
     const renderLand = ({ item }: { item: CropDetail }) => (
-        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropDetail", { project: project, cropDetail: item })} >
+        <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate("CropDetail", { project: project, cropDetails: item })} >
             <View style={styles.cardHeader}>
                 <Text style={styles.landName}>{item.cropName}</Text>
                 <View style={styles.cardActions}>

@@ -14,7 +14,7 @@ import { Card } from 'react-native-paper';
 import AppDropdown from '../../../../components/AppDropdown';
 
 
-const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropUproot: React.FC<{ project: Project, cropCode: number , onCropChange: (cropDetail:any) => void }> = ({ project, cropCode , onCropChange }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editUproot, setEditUproot] = useState<any>(null);
@@ -96,6 +96,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
+                onCropChange(response.result)
             } catch (error) {
             }
         };
@@ -121,7 +122,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
     const getUprootExpectedData = () => {
         return (
             <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>{editUproot ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
+                <Text style={styles.modalTitle}>{editUproot ? 'Edit Uproot Data' : 'Add Uproot Data'}</Text>
                 <Formik
                     initialValues={{
                         plotCropId: cropDetail?.cropId || '',
@@ -167,7 +168,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
     const getUprootActualData = () => {
         return (
             <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-                <Text style={styles.modalTitle}>{editUproot ? 'Edit CropHarvest' : 'Add CropHarvest'}</Text>
+                <Text style={styles.modalTitle}>{editUproot ? 'Edit Uproot Data' : 'Add Uproot Data'}</Text>
                 <Formik
                     initialValues={{
                         plotCropId: cropDetail?.cropId || '',

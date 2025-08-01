@@ -18,7 +18,7 @@ import { Card, Divider } from 'react-native-paper';
 
 
 
-const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: (cropDetail:any) => void }> = ({ project, cropCode, onCropChange }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
@@ -160,6 +160,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
+                onCropChange(response.result)
             } catch (error) {
             }
         };
@@ -402,7 +403,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
     const loadFormData = () => {
         if (currentSelectedForm === "HARVESTSTARTEXPECTED" || currentSelectedForm === "HARVESTENDEXPECTED") return getHarvestStartExpectedData();
         if (currentSelectedForm === "HARVESTSTARTACTUAL" || currentSelectedForm === "HARVESTENDACTUAL") return getHarvestStartActualData();
-        console.log("currentSelectedForm", currentSelectedForm)
         return addEditHarvestYield();
     }
 

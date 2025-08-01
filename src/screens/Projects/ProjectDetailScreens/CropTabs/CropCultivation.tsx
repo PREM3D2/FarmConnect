@@ -12,7 +12,7 @@ import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
 import { Card } from 'react-native-paper';
 
-const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropCultivation: React.FC<{ project: Project, cropCode: number,onCropChange: (cropDetail:any) => void }> = ({ project, cropCode, onCropChange }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
@@ -92,6 +92,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
+                onCropChange(response.result);
             } catch (error) {
             }
         };

@@ -16,7 +16,9 @@ const Crops = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { project } = (route.params as { project: Project });
-  const { cropDetail } = (route.params as { cropDetail: any });
+  const { cropDetails } = (route.params as { cropDetails: any });
+  // const [cropDetail, setCropDetail] = useState(cropDetails);
+  const [cropStage, setCropStage] = useState<string>('Initial')
 
   const [routes, setRoutes] = useState([
     { key: 'home', title: 'Home', params: route.params },
@@ -28,44 +30,54 @@ const Crops = () => {
     { key: 'uproot', title: 'Up Root', params: route.params },
   ]);
 
+  // const onCropChange = (detail: any) => {
+  //   setCropDetail(detail);
+  // }
+
   const Home = () => (
     <View style={styles.scene}>
-      <CropHome project={project} cropCode={cropDetail.code} />
+      <CropHome project={project} cropCode={cropDetails.code} />
     </View>
   );
 
   const Stacking = () => (
     <View style={styles.scene}>
-      <CropStacking project={project} cropCode={cropDetail.code} />
+      <CropStacking project={project} cropCode={cropDetails.code} />
     </View>
   );
 
   const Cultivation = () => (
     <View style={styles.scene}>
-      <CropCultivation project={project} cropCode={cropDetail.code} />
+      <CropCultivation project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+        getCropCurrentStage(data)
+      }} />
     </View>
   );
 
   const Harvest = () => (
     <View style={styles.scene}>
-      <CropHarvest project={project} cropCode={cropDetail.code} />
+      <CropHarvest project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+        getCropCurrentStage(data);
+      }} />
     </View>
   );
   const Protection = () => (
     <View style={styles.scene}>
-      <CropProtection project={project} cropCode={cropDetail.code} />
+      <CropProtection project={project} cropCode={cropDetails.code} />
     </View>
   );
 
   const Uproot = () => (
     <View style={styles.scene}>
-      <CropUproot project={project} cropCode={cropDetail.code} />
+      <CropUproot project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+        getCropCurrentStage(data)
+      }} />
     </View>
   );
 
   const Nursery = () => (
     <View style={styles.scene}>
-      <CropNursery project={project} cropCode={cropDetail.code} />
+      <CropNursery project={project} cropCode={cropDetails.code} />
     </View>
   );
 
@@ -81,29 +93,29 @@ const Crops = () => {
 
   useEffect(() => {
     let updatedRoutes = [...routes];
-
-    if (cropDetail.cropCultivationType === 'sowing') {
+    if (cropDetails.cropCultivationType === 'sowing') {
       updatedRoutes = updatedRoutes.filter((x) => x.key !== 'nursery');
     }
-
-    if (!cropDetail.protectionsRequired) {
+    if (!cropDetails.protectionsRequired) {
       updatedRoutes = updatedRoutes.filter((x) => x.key !== 'protection');
     }
-
     setRoutes(updatedRoutes);
+    getCropCurrentStage(cropDetails);
   }, [])
 
-  const getCropCurrentStage = () => {
-    if(!cropDetail) return "Initial";
+  const getCropCurrentStage = (cropDetail: any) => {
+    if (!cropDetail) return "Initial";
     if (cropDetail.uprootingStatus) {
-      return "Uprooted";
+      setCropStage("Uprooted")
+      return
     }
     if (cropDetail.harvestStartStatus) {
-      return "Harvest Started";
-      ;
+      setCropStage("Harvest Started")
+      return;
     }
     if (cropDetail.cultivationStatus) {
-      return "Cultivation";
+      setCropStage("Cultivation")
+      return
     }
     return "Initial";
   }
@@ -116,7 +128,7 @@ const Crops = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#388e3c" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{cropDetail?.cropName}<Text style ={{color: '#388e3c'}}> ({getCropCurrentStage()})</Text> </Text>
+        <Text style={styles.headerTitle}>{cropDetails?.cropName}<Text style={{ color: '#388e3c' }} >({cropStage})</Text> </Text>
       </View>
       <CustomTabView
         routes={routes}
