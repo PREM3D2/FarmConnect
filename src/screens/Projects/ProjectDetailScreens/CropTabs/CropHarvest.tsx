@@ -42,17 +42,18 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
         setIsChangeStatus(false);
     };
 
-    const handleDelete = (yieldId: string) => {
+    const handleDelete = async (yieldId: string) => {
         const deletePlot = async () => {
             try {
                 const response = await CropService.deleteYield(yieldId);
+                setReloadList(!reloadList);
                 showToast('success', 'Delete Yield', 'Yield has been Deleted Successfully');
             } catch (error) {
                 showToast('error', 'Delete Yield', 'Yield has been Deleted Successfully');
             }
         };
-        deletePlot();
-        setReloadList(!reloadList);
+        await deletePlot();
+
     };
 
     const confirmDelete = (id: string) => {
@@ -91,6 +92,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 const response = currentSelectedForm === "HARVESTSTARTEXPECTED" ? await CropService.updateharveststartexpectedDate(harvestStartData) : await CropService.updateharvestendexpectedDate(harvestEndData)
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Harvest", response.result.successMessage);
                 }
                 else {
@@ -100,8 +102,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 showToast('error', "Harvest", error.message);
             }
         };
-        addPlot();
-        setReloadList(!reloadList);
+        await addPlot();
     }
 
     const handleAddEditYield = async (values: any) => {
@@ -116,6 +117,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 const response = await CropService.addUpdateCropHarvest(harvestStartData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Harvest", response.result.successMessage);
                 }
                 else {
@@ -126,7 +128,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             }
         };
         await addHarvest();
-        setReloadList(!reloadList);
     }
 
     const handleHarvestStartActual = async (values: any) => {
@@ -135,13 +136,13 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
             actualDate: values.actualDate,
             actualDateNotes: values.actualDateNotes,
         };
-        console.log("harvestData", harvestData, "currentSelectedForm", currentSelectedForm)
 
         const changesHarvestStartDate = async () => {
             try {
                 const response = currentSelectedForm === "HARVESTSTARTACTUAL" ? await CropService.updateharveststartactualDate(harvestData) : await CropService.updateharvestendactualDate(harvestData)
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Harvest", response.result.successMessage);
                 }
                 else {
@@ -151,34 +152,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                 showToast('error', "Harvest", error.message);
             }
         };
-        await changesHarvestStartDate();
-        setReloadList(!reloadList);
-    }
-
-
-    const handleUpdatePlot = async (values: any) => {
-        const protectionData = {
-            code: values.code,
-            plotCropId: cropCode,
-            protectionDeployActualDate: values.protectionDeployActualDate,
-            protectionDeployActualDateNotes: values.protectionDeployActualDateNotes,
-        };
-        const updatePlot = async () => {
-            try {
-                const response = await CropService.updateProtectionActualDate(protectionData);
-                const toastType = response.result.success ? 'success' : 'error'
-                if (response.result.success) {
-                    showToast(toastType, "Harvest", response.result.successMessage);
-                }
-                else {
-                    showToast(toastType, "Harvest", response.result.errorMessage);
-                }
-            } catch (error: any) {
-                showToast('error', "Harvest", error.message);
-            }
-        };
-        updatePlot();
-        setReloadList(!reloadList);
+        await changesHarvestStartDate();     
     }
 
     useEffect(() => {
@@ -507,13 +481,13 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number }> = ({ project
                                 <Text style={styles.section}>
                                     - Expected: <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)} </Text>
                                 </Text>
-                                {cropDetail?.harvestEndExpectedDate === null && <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
+                                {!cropDetail?.harvestEndActualDate && <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTENDEXPECTED')}>
                                     <Icon name="pencil" size={22} color="#388e3c" />
                                 </TouchableOpacity>}
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                                 <Text style={styles.section}>
-                                    - Actual: <Text style={styles.sectionValue}>{AppFunctions.formatDate(cropDetail?.harvestEndExpectedDate)}</Text>
+                                    - Actual: <Text style={styles.sectionValue}>{AppFunctions.formatDate(cropDetail?.harvestEndActualDate)}</Text>
                                 </Text>
                                 <TouchableOpacity style={styles.section} onPress={() => openEditModal(cropDetail, 'HARVESTENDACTUAL')}>
                                     <Icon name="pencil" size={22} color="#388e3c" />

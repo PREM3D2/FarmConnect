@@ -14,6 +14,7 @@ import TagCompoent from '../../../components/TagComponent';
 import VenturiService from '../../../services/VenturiService';
 import { Venturi } from './Venturi';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { showToast } from '../../../components/ShowToast';
 
 
 const phaseDropdown = [
@@ -68,15 +69,17 @@ const Pumps = () => {
         setModalVisible(true);
     };
 
-    const handleDelete = (Pump: Pump) => {
+    const handleDelete = async (Pump: Pump) => {
         const deletePump = async () => {
             try {
                 const response = await PumpsService.deletePump(Pump.code);
+                showToast('success', 'Delete Pump', 'Pump has been Deleted Successfully');
+                setReloadList(!reloadList);
             } catch (error) {
+                 showToast('error', 'Delete Pumo', 'Error while Delteing Pump');
             }
         };
-        deletePump();
-        setReloadList(!reloadList);
+        await deletePump();
     };
 
     const confirmDelete = (Pump: Pump) => {
@@ -125,12 +128,19 @@ const Pumps = () => {
         };
         const addPump = async () => {
             try {
-                const res = await PumpsService.addPump(PumpData);
+                const response = await PumpsService.addPump(PumpData);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    setReloadList(!reloadList);
+                    showToast(toastType, "Add Pump", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Add Pump", response.result.errorMessage);
+                }
             } catch (error) {
             }
         };
-        addPump();
-        setReloadList(!reloadList);
+        await addPump();
     }
 
     const handleUpdatePump = async (values: any) => {
@@ -146,14 +156,18 @@ const Pumps = () => {
         const updatePumpData = async () => {
             try {
                 const response = await PumpsService.updatePump(PumpData);
-
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    setReloadList(!reloadList);
+                    showToast(toastType, "Edit Pump", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Edit Pump", response.result.errorMessage);
+                }
             } catch (error) {
-
             }
         };
-        updatePumpData();
-
-        setReloadList(!reloadList);
+        await updatePumpData();
     }
 
     useEffect(() => {
@@ -222,7 +236,7 @@ const Pumps = () => {
         </View>
     );
 
-    const handleSelectedTags = (selectedTags: any) => {
+    const handleSelectedTags = async (selectedTags: any) => {
         const requestBody = {
             code: editPumps?.code,
             venturiCodes: selectedTags.map((tag: string) => { return Number(tag) })
@@ -230,13 +244,20 @@ const Pumps = () => {
         const mapVenturistoPump = async () => {
             try {
                 const response = await PumpsService.mapVenturiesToPump(requestBody);
+                const toastType = response.result.success ? 'success' : 'error'
+                if (response.result.success) {
+                    setReloadList(!reloadList);
+                    showToast(toastType, "Map Venturi to Pump", response.result.successMessage);
+                }
+                else {
+                    showToast(toastType, "Map Venturi to Pump", response.result.errorMessage);
+                }
             } catch (error) {
             }
         };
-        mapVenturistoPump();
+        await mapVenturistoPump();
         setModalVisible(false);
         setIsEditCase(false);
-        setReloadList(!reloadList)
     }
 
     return (

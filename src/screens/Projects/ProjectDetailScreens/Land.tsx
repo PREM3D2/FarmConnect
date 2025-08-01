@@ -63,17 +63,17 @@ const Land = ({ }) => {
         setModalVisible(true);
     };
 
-    const handleDelete = (plot: Plot) => {
+    const handleDelete = async (plot: Plot) => {
         const deletePlot = async () => {
             try {
                 await LandService.deletePlot(plot.code);
                 showToast('success', 'Delete Land', 'Land has been Deleted Successfully');
+                setReloadList(!reloadList);
             } catch (error) {
                 showToast('error', 'Delete Land', 'Error while Delteing Land');
             }
         };
-        deletePlot();
-        setReloadList(!reloadList);
+        await deletePlot();
     };
 
     const confirmDelete = (plot: Plot) => {
@@ -103,8 +103,10 @@ const Land = ({ }) => {
             plotWidth: parseFloat(values.plotWidth),
             isRiser: values.isRiser,
             riserCalMethod: values.riserSide,
-            plotRiserDistance: parseFloat(values.plotRiserDistance),
-            plotBedActualCount: parseInt(values.plotBedActualCount, 10),
+            plotRiserDistance:
+                Number.isNaN(parseFloat(values.plotRiserDistance)) ? null : parseFloat(values.plotRiserDistance),
+            plotBedActualCount:
+                Number.isNaN(parseFloat(values.plotBedActualCount)) ? null : parseFloat(values.plotBedActualCount),
             soilId: values.soilId,
         };
         const addPlot = async () => {
@@ -112,6 +114,7 @@ const Land = ({ }) => {
                 const response = await LandService.addPlot(plotData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Add Land", response.result.successMessage);
                 }
                 else {
@@ -120,8 +123,7 @@ const Land = ({ }) => {
             } catch (error) {
             }
         };
-        addPlot();
-        setReloadList(!reloadList);
+        await addPlot();
     }
 
     const handleUpdatePlot = async (values: any) => {
@@ -142,6 +144,7 @@ const Land = ({ }) => {
                 const response = await LandService.updatePlot(plotData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Edit Land", response.result.successMessage);
                 }
                 else {
@@ -150,8 +153,7 @@ const Land = ({ }) => {
             } catch (error) {
             }
         };
-        updatePlot();
-        setReloadList(!reloadList);
+        await updatePlot();
     }
 
     useEffect(() => {
@@ -303,6 +305,7 @@ const Land = ({ }) => {
 
                                     return (
                                         <>
+                                            {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
                                             <AppTextInput
                                                 placeholder="Plot Name"
                                                 maxLength={45}

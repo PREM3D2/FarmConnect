@@ -10,9 +10,7 @@ const getJwtToken = () => store.getState().auth.token;
 const CropService = {
   getcropsbyprojectid: async (projectId: number) => {
     try {
-       console.log("fetchCrops -API Call Start" , (new Date()).toLocaleTimeString());
       const token = getJwtToken();
-      console.log("fetchCrops -API Call Token" , (new Date()).toLocaleTimeString());
       const response = await axios.get(
         `${API_BASE_URL}/plotcrop?projectCode=${projectId}`,
         {
@@ -21,7 +19,6 @@ const CropService = {
           },
         }
       );
-      console.log("fetchCrops -API Call End" , (new Date()).toLocaleTimeString());
       return response.data;
     } catch (error) {
       throw error;

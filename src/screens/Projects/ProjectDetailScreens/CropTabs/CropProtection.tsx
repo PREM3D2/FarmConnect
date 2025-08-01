@@ -85,17 +85,18 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
         setIsChangeStatus(true);
     };
 
-    const handleDelete = (protection: CropProtectionInfo) => {
+    const handleDelete = async (protection: CropProtectionInfo) => {
         const deletePlot = async () => {
             try {
                 const response = await CropService.deleteCropProtectionExpected(protection.code);
+                setReloadList(!reloadList);
                 showToast('success', 'Delete Protection', 'Protection has been Deleted Successfully');
             } catch (error) {
                 showToast('error', 'Delete Protection', 'Protection has been Deleted Successfully');
             }
         };
-        deletePlot();
-        setReloadList(!reloadList);
+        await deletePlot();
+
     };
 
     const confirmDelete = (protection: CropProtectionInfo) => {
@@ -137,6 +138,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 const response = editCropProtection === null ? await CropService.addCropProtectionDate(protectionAddData) : await CropService.addCropProtectionDate(protectionEditData)
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Protection", response.result.successMessage);
                 }
                 else {
@@ -146,8 +148,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 showToast('error', "Protection", error.message);
             }
         };
-        addEditProtection();
-        setReloadList(!reloadList);
+        await addEditProtection();
     }
 
     const handleUpdatePlot = async (values: any) => {
@@ -162,6 +163,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 const response = await CropService.updateProtectionActualDate(protectionData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Protection", response.result.successMessage);
                 }
                 else {
@@ -171,8 +173,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                 showToast('error', "Protection", error.message);
             }
         };
-        updatePlot();
-        setReloadList(!reloadList);
+        await updatePlot();
     }
 
     useEffect(() => {

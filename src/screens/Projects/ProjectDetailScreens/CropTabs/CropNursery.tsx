@@ -34,6 +34,7 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
                 const response = await CropService.updatecropNurseryDate(nurseryStatusDate);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Nursery Status", response.result.successMessage);
                 }
                 else {
@@ -43,8 +44,7 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
                 showToast('error', "Nursery Status", error.message);
             }
         };
-        updateNurseryDate();
-        setReloadList(!reloadList);
+        await updateNurseryDate();  
     }
 
     useEffect(() => {

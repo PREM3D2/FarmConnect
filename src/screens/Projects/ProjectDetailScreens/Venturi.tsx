@@ -44,17 +44,17 @@ const Venturi = () => {
         setModalVisible(true);
     };
 
-    const handleDelete = (venturi: Venturi) => {
+    const handleDelete = async (venturi: Venturi) => {
         const deleteventuri = async () => {
             try {
                 await VenturiService.deleteventuri(venturi.code);
+                setReloadList(!reloadList);
                 showToast('success', 'Delete Venturi', 'Venturi has been Deleted Successfully');
             } catch (error) {
                 showToast('error', 'Delete Venturi', 'Error while deleting Venturi');
             }
         };
-        deleteventuri();
-        setReloadList(!reloadList);
+        await deleteventuri();
     };
 
     const confirmDelete = (venturi: Venturi) => {
@@ -87,6 +87,7 @@ const Venturi = () => {
                 const response = await VenturiService.addventuri(venturiData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Add Venturi", response.result.successMessage);
                 }
                 else {
@@ -95,8 +96,7 @@ const Venturi = () => {
             } catch (error) {
             }
         };
-        addventuri();
-        setReloadList(!reloadList);
+        await addventuri();
     }
 
     const handleUpdateventuri = async (values: any) => {
@@ -111,6 +111,7 @@ const Venturi = () => {
                 const response = await VenturiService.updateventuri(venturiData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Edit Venturi", response.result.successMessage);
                 }
                 else {
@@ -121,8 +122,7 @@ const Venturi = () => {
             finally {
             }
         };
-        updateventuri();
-        setReloadList(!reloadList);
+        await updateventuri();
     }
 
 

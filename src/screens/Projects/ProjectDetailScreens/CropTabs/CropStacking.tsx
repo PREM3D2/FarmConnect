@@ -34,6 +34,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                 const response = await CropService.updatecropStackingDate(stackingStatusData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Stacking Status", response.result.successMessage);
                 }
                 else {
@@ -43,8 +44,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                 showToast('error', "Stacking Status", error.message);
             }
         };
-        updateStackingDate();
-        setReloadList(!reloadList);
+        await updateStackingDate();
     }
 
 

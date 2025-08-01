@@ -42,6 +42,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 const response = await CropService.updateUprootActualDate(harvestData)
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Uproot", response.result.successMessage);
                 }
                 else {
@@ -51,8 +52,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 showToast('error', "Uproot", error.message);
             }
         };
-        updateUprootActual();
-        setReloadList(!reloadList);
+        await updateUprootActual();
     }
 
     const handleChangeUprootExpectedData = async (values: any) => {
@@ -66,6 +66,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 const response = await CropService.updateUprootExpectedDate(harvestData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Uproot", response.result.successMessage);
                 }
                 else {
@@ -75,8 +76,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
                 showToast('error', "Uproot", error.message);
             }
         };
-        updateUprootExpected();
-        setReloadList(!reloadList);
+        await updateUprootExpected();
     }
 
     useEffect(() => {
@@ -255,7 +255,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number }> = ({ project,
     return (
         <View style={{ flex: 1, marginTop: 10 }}>
             <Card style={styles.card}>
-                {cropDetail?.uprootingActualDate === null &&
+                {!cropDetail?.uprootingActualDate &&
                     <TouchableOpacity onPress={() => openEditModal(cropDetail, false)} style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
                         <Icon name="pencil" size={22} color="#388e3c" />
                     </TouchableOpacity>}

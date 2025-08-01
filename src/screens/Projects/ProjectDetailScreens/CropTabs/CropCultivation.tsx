@@ -49,6 +49,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                 const response = await CropService.updateCultivationExpectedDate(cultivationData);
                 const toastType = response.result.success ? 'success' : 'error'
                 if (response.result.success) {
+                    setReloadList(!reloadList);
                     showToast(toastType, "Cultivation", response.result.successMessage);
                 }
                 else {
@@ -58,8 +59,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number }> = ({ pro
                 showToast('error', "Cultivation", error.message);
             }
         };
-        await updateCultivationExpectedDate();
-        setReloadList(!reloadList);
+        await updateCultivationExpectedDate();    
     }
 
     const handleCultivationActualDateUpdate = async (values: any) => {
