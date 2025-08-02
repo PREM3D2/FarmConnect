@@ -101,11 +101,13 @@ const CropList = ({ }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const openAddModal = () => {
+        loadOptions();
         setEditLand(null);
         setModalVisible(true);
     };
 
     const openEditModal = (land: any) => {
+        loadOptions();
         setEditLand(land);
         setModalVisible(true);
     };
@@ -189,36 +191,41 @@ const CropList = ({ }) => {
         setReloadList(prev => !prev);
     }
 
-    useEffect(() => {
-        const loadOptions = async () => {
-            try {
-                const [cropResponse, landResponse] = await Promise.all([
-                    CropService.getallCropOptions(),
-                    LandService.getplotsbyprojectid(project.projectId)
-                ]);
-                setCropOptions(cropResponse.result || []);
-                setLandOptions(landResponse.result || []);
-            } catch (error) {
-            }
-        };
+    const loadOptions = async () => {
+        try {
+            const [cropResponse, landResponse] = await Promise.all([
+                CropService.getallCropOptions(),
+                LandService.getplotsbyprojectid(project.projectId)
+            ]);
+            setCropOptions(cropResponse.result || []);
+            setLandOptions(landResponse.result || []);
+        } catch (error) {
+        }
+    };
+
+    useEffect(() => {   
+        Alert.alert('Loading Crop')     
         loadOptions();
+        fetchCrops();
     }, []);
 
-    useEffect(() => {
-        setIsLoading(true);
-        const fetchCrops = async () => {
-            if (typeof project?.projectId !== 'number') return;
-            try {
-                const response = await CropService.getcropsbyprojectid(project.projectId);
-                setCrops([...response.result]);
-                setIsLoading(false);
-            } catch (error) {
-                setCrops([]);
-                setIsLoading(false);
-            }
-        };
+    useEffect(() => {  
+        loadOptions();           
         fetchCrops();
     }, [reloadList]);
+
+    const fetchCrops = async () => {         
+        if (typeof project?.projectId !== 'number') return;
+        setIsLoading(true); 
+        try {
+            const response = await CropService.getcropsbyprojectid(project.projectId);
+            setCrops([...response.result]);
+            setIsLoading(false);
+        } catch (error) {
+            setCrops([]);
+            setIsLoading(false);
+        }
+    };
 
     const validationSchema = Yup.object().shape({
         plotId: Yup.string().required('Land Name is required'),
@@ -501,6 +508,7 @@ const CropList = ({ }) => {
                                                             touched={touched.plantationNurseryRaisedDate}
                                                             placeholder="Nursery Raised Date"
                                                             required={true}
+                                                            maxDate={new Date()}
                                                         />
                                                     </View>
                                                 }

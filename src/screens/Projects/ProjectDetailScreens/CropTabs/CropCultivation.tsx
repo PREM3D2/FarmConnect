@@ -12,7 +12,7 @@ import DateControl from '../../../../components/DateControl';
 import { showToast } from '../../../../components/ShowToast';
 import { Card } from 'react-native-paper';
 
-const CropCultivation: React.FC<{ project: Project, cropCode: number,onCropChange: (cropDetail:any) => void }> = ({ project, cropCode, onCropChange }) => {
+const CropCultivation: React.FC<{ project: Project, isFocused: boolean, cropCode: number,onCropChange: (cropDetail:any) => void }> = ({ project, cropCode, onCropChange, isFocused }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
@@ -97,7 +97,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number,onCropChang
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
 
     const getValidationSchema = (isChangeStatus: boolean) =>
@@ -226,6 +226,7 @@ const CropCultivation: React.FC<{ project: Project, cropCode: number,onCropChang
                                                 touched={touched.cultivationActualDate}
                                                 placeholder="Cultivation Actual Date"
                                                 required={true}
+                                                maxDate={new Date()}
                                             />
                                             <AppTextInput
                                                 placeholder="Notes"

@@ -76,7 +76,7 @@ const Pumps = () => {
                 showToast('success', 'Delete Pump', 'Pump has been Deleted Successfully');
                 setReloadList(!reloadList);
             } catch (error) {
-                 showToast('error', 'Delete Pumo', 'Error while Delteing Pump');
+                showToast('error', 'Delete Pumo', 'Error while Delteing Pump');
             }
         };
         await deletePump();
@@ -170,15 +170,16 @@ const Pumps = () => {
         await updatePumpData();
     }
 
+    const fetchVentuies = async () => {
+        if (typeof project?.projectId !== 'number') return;
+        try {
+            const response = await VenturiService.getventurisbyprojectid(project.projectId);
+            setVenturis(response.result || []);
+        } catch (error) {
+        }
+    };
+
     useEffect(() => {
-        const fetchVentuies = async () => {
-            if (typeof project?.projectId !== 'number') return;
-            try {
-                const response = await VenturiService.getventurisbyprojectid(project.projectId);
-                setVenturis(response.result || []);
-            } catch (error) {
-            }
-        };
         fetchVentuies();
     }, []);
 
@@ -223,6 +224,7 @@ const Pumps = () => {
                         <MaterialCommunityIcons name="delete" size={22} color="#900" />
                     </TouchableOpacity>
                     <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => {
+                        fetchVentuies();
                         getPumpDetailbyPumpId(item);
                     }}>
                         <MaterialCommunityIcons name="link" size={26} color="#388e3c" />

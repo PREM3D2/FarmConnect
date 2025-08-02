@@ -12,7 +12,7 @@ import { showToast } from '../../../../components/ShowToast';
 import { Card } from 'react-native-paper';
 
 
-const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropNursery: React.FC<{ project: Project, cropCode: number,isFocused: boolean }> = ({ project, cropCode, isFocused }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editLand, setEditLand] = useState<any>(null);
@@ -56,7 +56,7 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
     const validationSchema = Yup.object().shape({
         plantationNurseryRaisedDate: Yup.string().required('Date is required'),
@@ -124,6 +124,7 @@ const CropNursery: React.FC<{ project: Project, cropCode: number }> = ({ project
                                             touched={touched.plantationNurseryRaisedDate}
                                             placeholder="Nursery Date"
                                             required={true}
+                                            maxDate={new Date()}
                                         />
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>

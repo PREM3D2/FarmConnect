@@ -30,54 +30,50 @@ const Crops = () => {
     { key: 'uproot', title: 'Up Root', params: route.params },
   ]);
 
-  // const onCropChange = (detail: any) => {
-  //   setCropDetail(detail);
-  // }
-
-  const Home = () => (
+  const Home = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropHome project={project} cropCode={cropDetails.code} />
+      <CropHome project={project} cropCode={cropDetails.code} isFocused={isFocused} />
     </View>
   );
 
-  const Stacking = () => (
+  const Stacking = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropStacking project={project} cropCode={cropDetails.code} />
+      <CropStacking project={project} cropCode={cropDetails.code} isFocused={isFocused} />
     </View>
   );
 
-  const Cultivation = () => (
+  const Cultivation = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropCultivation project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+      <CropCultivation project={project} cropCode={cropDetails.code} isFocused={isFocused} onCropChange={(data) => {
         getCropCurrentStage(data)
       }} />
     </View>
   );
 
-  const Harvest = () => (
+  const Harvest = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropHarvest project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+      <CropHarvest project={project} cropCode={cropDetails.code} isFocused={isFocused} onCropChange={(data) => {
         getCropCurrentStage(data);
       }} />
     </View>
   );
-  const Protection = () => (
+  const Protection = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropProtection project={project} cropCode={cropDetails.code} />
+      <CropProtection project={project} isFocused={isFocused} cropCode={cropDetails.code} />
     </View>
   );
 
-  const Uproot = () => (
+  const Uproot = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropUproot project={project} cropCode={cropDetails.code} onCropChange={(data) => {
+      <CropUproot project={project} isFocused={isFocused} cropCode={cropDetails.code} onCropChange={(data) => {
         getCropCurrentStage(data)
       }} />
     </View>
   );
 
-  const Nursery = () => (
+  const Nursery = ({ isFocused }: { isFocused: boolean }) => (
     <View style={styles.scene}>
-      <CropNursery project={project} cropCode={cropDetails.code} />
+      <CropNursery project={project} isFocused={isFocused} cropCode={cropDetails.code} />
     </View>
   );
 
@@ -104,7 +100,7 @@ const Crops = () => {
   }, [])
 
   const getCropCurrentStage = (cropDetail: any) => {
-    if (!cropDetail) return "Initial";
+    if (!cropDetail) return "Pending";
     if (cropDetail.uprootingStatus) {
       setCropStage("Uprooted")
       return
@@ -117,7 +113,7 @@ const Crops = () => {
       setCropStage("Cultivation")
       return
     }
-    return "Initial";
+    return "Pending";
   }
 
 

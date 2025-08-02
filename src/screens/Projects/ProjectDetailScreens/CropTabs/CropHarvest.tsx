@@ -15,10 +15,7 @@ import { showToast } from '../../../../components/ShowToast';
 import { Card, Divider } from 'react-native-paper';
 
 
-
-
-
-const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: (cropDetail:any) => void }> = ({ project, cropCode, onCropChange }) => {
+const CropHarvest: React.FC<{ project: Project, cropCode: number, isFocused: boolean, onCropChange: (cropDetail: any) => void }> = ({ project, cropCode, onCropChange, isFocused }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
@@ -152,7 +149,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                 showToast('error', "Harvest", error.message);
             }
         };
-        await changesHarvestStartDate();     
+        await changesHarvestStartDate();
     }
 
     useEffect(() => {
@@ -160,12 +157,12 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
             try {
                 const response = await CropService.getcropDetailbycropid(project.projectId, cropCode);
                 setCropDetail(response.result || []);
-                onCropChange(response.result)
+                onCropChange(response.result);
             } catch (error) {
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
     const renderYieldItem = (item: any) => {
         return (
@@ -176,9 +173,9 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                         {/* <TouchableOpacity >
                             <Icon name="pencil" size={22} color="#388e3c" />
                         </TouchableOpacity> */}
-                        <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item.code)}>
+                        {!cropDetail?.harvestEndActualDate && <TouchableOpacity style={{ marginLeft: 8 }} onPress={() => confirmDelete(item.code)}>
                             <MaterialCommunityIcons name="delete" size={22} color="#900" />
-                        </TouchableOpacity>
+                        </TouchableOpacity>}
                     </View>
                     <Text style={styles.section}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Harvest Date: {AppFunctions.formatDate(item?.harvestDate)}</Text>
                     <Text style={styles.subItem}>- Harvest Collected : {item?.yieldCollectedKillosCount}</Text>
@@ -235,6 +232,7 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                                 touched={touched.expectedDate}
                                 placeholder="Harvest Expected Date"
                                 required={true}
+                                minDate={cropDetail?.cultivationActualDate ? new Date(cropDetail?.cultivationActualDate) : new Date()}
                             />{
                                 currentSelectedForm === "HARVESTSTARTEXPECTED" && <>
                                     <AppTextInput
@@ -292,7 +290,6 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <>
                             {/* <Text>{JSON.stringify(errors, null, 2)} </Text> */}
-
                             <DateControl
                                 value={values.actualDate}
                                 setFieldValue={setFieldValue}
@@ -301,6 +298,8 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                                 touched={touched.actualDate}
                                 placeholder="Harvest Actual Date"
                                 required={true}
+                                minDate={cropDetail?.cultivationActualDate ? new Date(cropDetail?.cultivationActualDate) : new Date()}
+                                maxDate={new Date()}
                             />
                             <AppTextInput
                                 placeholder="Notes"
@@ -355,6 +354,8 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                                 touched={touched.expectedDate}
                                 placeholder="Harvest Date"
                                 required={true}
+                                minDate={new Date(cropDetail?.harvestStartActualDate)}
+                                maxDate={new Date()}
                             />
                             <AppTextInput
                                 placeholder="Harvesting Yield Kilos Collected"
@@ -443,8 +444,8 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                         <Card.Content>
                             <View >
                                 <Text style={styles.sectionValue}><MaterialCommunityIcons name="corn" size={18} color="#8BC34A" />  Yield Collection:</Text>
-                                <Text style={styles.subItem}>-Harvest Yield Expected(Kilos) :<Text style={styles.sectionValue}>{cropDetail?.harvestingYieldKilosExpected}</Text> </Text>
-                                <Text style={styles.subItem}>-Harvest Yield Interval Count : <Text style={styles.sectionValue}>{cropDetail?.harvestingIntervalCountExpected}</Text> </Text>
+                                <Text style={styles.subItem}>-Harvest Yield Expected(Kilos) :<Text style={styles.sectionValue}>{cropDetail?.harvestYieldKilosCollected}</Text> </Text>
+                                <Text style={styles.subItem}>-Harvest Yield Expected Interval Count : <Text style={styles.sectionValue}>{cropDetail?.harvestIntervalCountExpected}</Text> </Text>
                                 <Divider style={styles.divider} />
                                 <Text style={styles.subItem}>-Total Yield Collected(Kilos) : <Text style={styles.sectionValue}>{cropDetail?.harvests.map((item: any) => { return item.yieldCollectedKillosCount }).reduce((sum: number, num: number) => sum + num, 0)}</Text> </Text>
                                 <Text style={styles.subItem}>-Total Yield Interval Count :<Text style={styles.sectionValue}> {cropDetail?.harvests.length} </Text></Text>
@@ -452,9 +453,10 @@ const CropHarvest: React.FC<{ project: Project, cropCode: number, onCropChange: 
                             <View style={{ alignItems: 'flex-end', flexDirection: 'row' }}>
                                 <View style={{ flex: 1 }}>
 
-                                    <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+                                    {!cropDetail?.harvestEndActualDate && <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
                                         <Icon name="plus-circle" size={24} color='#388e3c' />
                                     </TouchableOpacity>
+                                    }
                                 </View>
 
                                 <TouchableOpacity onPress={() => setExpandedItem(!expandedItem)} style={styles.addBtn}>
@@ -684,4 +686,3 @@ const styles = StyleSheet.create({
 });
 
 export default CropHarvest;
-

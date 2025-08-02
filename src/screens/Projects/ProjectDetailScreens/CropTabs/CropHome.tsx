@@ -85,12 +85,12 @@ type CropDetail = {
 };
 
 
-const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropHome: React.FC<{ project: Project, cropCode: number, isFocused: boolean}> = ({ project, cropCode, isFocused }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const route = useRoute();
 
     const [editLand, setEditLand] = useState<CropDetail | null>(null);
-    const [cropDetail, setCropDetail] = useState<CropDetail>();
+    const [cropDetail, setCropDetail] = useState<any>();
     const [reloadList, setReloadList] = useState(false);
 
     const [expandedItemCode, setExpandedItemCode] = useState<number | null>(null);
@@ -106,7 +106,7 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList,isFocused]);
 
     const validationSchema = Yup.object().shape({
         // projectId: Yup.number().required('Project ID is required'),
@@ -176,8 +176,11 @@ const CropHome: React.FC<{ project: Project, cropCode: number }> = ({ project, c
                         <Text style={styles.subItem}>- Actual: {formatDate(cropDetail?.harvestStartActualDate)}</Text>
 
                         <Divider style={styles.divider} />
-                        <Text style={styles.row}><MaterialCommunityIcons name="chart-bar" size={18} color="#03A9F4" />  Yield Interval: {cropDetail?.harvestIntervalCountExpected} | {formatDate(cropDetail?.uprootingActualDate)}</Text>
-
+                        <Text style={styles.section}><MaterialCommunityIcons name="chart-bar" size={18} color="#03A9F4" />  Yield Interval:</Text>
+                         <Text style={styles.subItem}>-Harvest Yield Expected(Kilos) :<Text style={styles.subItem}>{cropDetail?.harvestYieldKilosCollected}</Text> </Text>
+                                                        <Text style={styles.subItem}>-Harvest Yield Expected Interval Count : <Text style={styles.subItem}>{cropDetail?.harvestIntervalCountExpected}</Text> </Text>
+                        <Text style={styles.subItem}>-Total Yield Collected(Kilos) : <Text style={styles.subItem}>{cropDetail?.harvests?.map((item: any) => { return item.yieldCollectedKillosCount }).reduce((sum: number, num: number) => sum + num, 0)}</Text> </Text>
+                        <Text style={styles.subItem}>-Total Yield Interval Count :<Text style={styles.subItem}> {cropDetail?.harvests.length} </Text></Text>
                         <Divider style={styles.divider} />
                         <Text style={styles.section}><MaterialCommunityIcons name="calendar-end" size={18} color="#E91E63" />  Harvest End:</Text>
                         <Text style={styles.subItem}>- Expected: {formatDate(cropDetail?.harvestEndExpectedDate)}</Text>

@@ -18,6 +18,8 @@ export interface DateControlProps {
   placeholder?: string;
   required?: boolean;
   style?: any;
+  minDate?: Date; // ✅ Minimum allowed date
+  maxDate?: Date; // ✅ Maximum allowed date
 }
 
 const formatDate = (date: Date) => {
@@ -33,6 +35,8 @@ const DateControl: React.FC<DateControlProps> = ({
   placeholder = 'Select Date',
   required = false,
   style,
+  minDate,
+  maxDate
 }) => {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -96,6 +100,8 @@ const DateControl: React.FC<DateControlProps> = ({
       <DateTimePickerModal
         isVisible={isPickerVisible}
         mode="date"
+        minimumDate={minDate}   // ✅ Added
+        maximumDate={maxDate}   // ✅ Added
         onConfirm={(date) => {
           handleConfirm(date);
           setIsFocused(false);

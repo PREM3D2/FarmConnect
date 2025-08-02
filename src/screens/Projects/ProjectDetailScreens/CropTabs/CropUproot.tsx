@@ -14,7 +14,7 @@ import { Card } from 'react-native-paper';
 import AppDropdown from '../../../../components/AppDropdown';
 
 
-const CropUproot: React.FC<{ project: Project, cropCode: number , onCropChange: (cropDetail:any) => void }> = ({ project, cropCode , onCropChange }) => {
+const CropUproot: React.FC<{ project: Project, cropCode: number , isFocused:boolean,onCropChange: (cropDetail:any) => void }> = ({ project, cropCode , onCropChange, isFocused }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editUproot, setEditUproot] = useState<any>(null);
@@ -101,7 +101,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number , onCropChange: 
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
     const getUprootExpectedDataValidation = Yup.object().shape({
         expectedDate: Yup.string().required('Expected date is required'),
@@ -202,6 +202,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number , onCropChange: 
                                     touched={touched.actualDate}
                                     placeholder="Harvest Actual Date"
                                     required={true}
+                                    maxDate={new Date()}
                                 />
                                 <AppTextInput
                                     placeholder="Notes"
@@ -273,7 +274,7 @@ const CropUproot: React.FC<{ project: Project, cropCode: number , onCropChange: 
                     <Text style={styles.sectionValue}><MaterialCommunityIcons name="shovel" size={18} color="#6D4C41" />  Uproot:</Text>
                     <Text style={styles.subItem}>- Actual: <Text style={styles.sectionValue}> {AppFunctions.formatDate(cropDetail?.uprootingActualDate)}</Text></Text>
                     <Text style={styles.subItem}>- Notes: <Text style={styles.sectionValue}> {cropDetail?.uprootingActualDateNotes}</Text></Text>
-                    <Text style={styles.subItem}>- Status:  {cropDetail?.cropFailure ? <Text style={{ color: 'red', fontWeight: 'bold' }}> Failure </Text> : <Text style={{ color: 'green', fontWeight: 'bold' }}> Success </Text>}</Text>
+                    <Text style={styles.subItem}>- Status:  {cropDetail?.cropFailure ? <Text style={{ color: 'red', fontWeight: 'bold' }}> Failure </Text> : <Text style={{ color: 'green', fontWeight: 'bold' }}> {cropDetail?.uprootingActualDate ? "Success" : "N/A"} </Text>}</Text>
                     {cropDetail?.cropFailure && <Text style={styles.subItem}>- Crop Failure Reasons:<Text style={styles.sectionValue}> {cropDetail?.cropFailureReason}</Text> </Text>}
                 </Card.Content>
             </Card>

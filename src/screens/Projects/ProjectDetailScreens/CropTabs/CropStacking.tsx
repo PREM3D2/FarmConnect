@@ -12,7 +12,7 @@ import { showToast } from '../../../../components/ShowToast';
 import { Card } from 'react-native-paper';
 
 
-const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropStacking: React.FC<{ project: Project, cropCode: number ,isFocused:boolean }> = ({ project, cropCode , isFocused}) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editLand, setEditLand] = useState<any>(null);
@@ -57,7 +57,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
     const validationSchema = Yup.object().shape({
         stackingDate: Yup.string().required('Date is required'),
@@ -125,6 +125,7 @@ const CropStacking: React.FC<{ project: Project, cropCode: number }> = ({ projec
                                             touched={touched.stackingDate}
                                             placeholder="Stacking Date"
                                             required={true}
+                                            maxDate={new Date()}
                                         />
                                         <View style={styles.modalActions}>
                                             <TouchableOpacity style={styles.saveBtn} onPress={() => handleSubmit()}>

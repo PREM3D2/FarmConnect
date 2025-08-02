@@ -56,7 +56,7 @@ type CropProtectionInfo = {
     protectionDeployActualDateNotes: string;
 };
 
-const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ project, cropCode }) => {
+const CropProtection: React.FC<{ project: Project, cropCode: number, isFocused:boolean }> = ({ project, cropCode , isFocused}) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [cropDetail, setCropDetail] = useState<any>();
     const [editCropProtection, setEditCropProtection] = useState<any>(null);
@@ -196,7 +196,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
             }
         };
         fetchCropDetail();
-    }, [reloadList]);
+    }, [reloadList, isFocused]);
 
     const renderProtectionItem = ({ item }: { item: CropProtectionInfo }) => (
         <View style={styles.card}>
@@ -329,6 +329,7 @@ const CropProtection: React.FC<{ project: Project, cropCode: number }> = ({ proj
                                                 touched={touched.protectionDeployActualDate}
                                                 placeholder="Protection Deploy Actual Date"
                                                 required={true}
+                                                maxDate={new Date()}
                                             />
                                             <AppTextInput
                                                 placeholder="Notes"
